@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trang Tìm Kiếm Đa Năng</title>
+    <!-- Thêm thư viện SortableJS cho tính năng Kéo thả -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -113,7 +115,7 @@
 
         .search-input {
             width: 100%;
-            padding: 14px 20px 14px 50px;
+            padding: 14px 50px 14px 50px;
             font-size: 16px;
             border: 1px solid #dfe1e5;
             border-radius: 24px;
@@ -134,6 +136,22 @@
             color: #9aa0a6;
             font-size: 18px;
         }
+
+        .voice-btn {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #9aa0a6;
+            outline: none;
+        }
+        .voice-btn:hover { color: #4285F4; }
+        body.dark-mode .voice-btn { color: #9aa0a6; }
+        body.dark-mode .voice-btn:hover { color: #8ab4f8; }
 
         .search-buttons {
             display: flex;
@@ -409,6 +427,15 @@
         </div>
     </div>
 
+    <!-- Modal thông báo đang nghe giọng nói -->
+    <div id="voiceOverlay" class="auth-overlay" style="display: none;">
+        <div class="auth-card" style="max-width: 320px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 15px;">🎤</div>
+            <h3 style="font-size: 18px; margin-bottom: 10px;">tôi đang nghe đây!</h3>
+            <p id="voiceTranscript" style="font-size: 14px; color: #5f6368; min-height: 20px;"></p>
+        </div>
+    </div>
+
     <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng/Tối">🌙</button>
     <button id="settingsToggleBtn" class="theme-toggle" style="right: 70px;" onclick="toggleSettings()" title="Cài đặt hình nền & Nút">⚙️</button>
 
@@ -427,14 +454,14 @@
             </div>
 
             <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;">Thêm nút liên kết tùy chỉnh:</label>
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;" id="customFormTitle">Thêm nút liên kết tùy chỉnh:</label>
                 <input type="text" id="customBtnName" class="auth-input" placeholder="Tên nút..." style="margin-bottom: 8px;">
                 <input type="text" id="customBtnUrl" class="auth-input" placeholder="Đường dẫn (https://...)..." style="margin-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <label style="font-size: 13px;">Màu chữ:</label>
                     <input type="color" id="customBtnColor" value="#3c4043" style="border: none; width: 40px; height: 30px; cursor: pointer; background: none;">
                 </div>
-                <button class="btn btn-login" style="width: 100%;" onclick="addCustomButton()">Thêm nút</button>
+                <button id="customBtnSubmit" class="btn btn-login" style="width: 100%;" onclick="addCustomButton()">Thêm nút</button>
             </div>
 
             <div>
@@ -451,6 +478,7 @@
     <div class="search-box">
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" class="search-input" placeholder="Nhập từ khóa hoặc chọn nền tảng bên dưới..." autofocus>
+        <button type="button" id="voiceBtn" class="voice-btn" onclick="toggleVoiceSearch()" title="Tìm kiếm bằng giọng nói">🎤</button>
     </div>
 
     <!-- Vùng hiển thị lịch sử -->
@@ -551,12 +579,51 @@
             renderCustomButtons();
         }
 
+        function editCustomButton(index) {
+            let customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
+            const btn = customBtns[index];
+            document.getElementById('customBtnName').value = btn.name;
+            document.getElementById('customBtnUrl').value = btn.url;
+            document.getElementById('customBtnColor').value = btn.color;
+            
+            document.getElementById('customFormTitle').textContent = 'Sửa nút liên kết tùy chỉnh:';
+            const submitBtn = document.getElementById('customBtnSubmit');
+            submitBtn.textContent = 'Cập nhật nút';
+            submitBtn.onclick = () => updateCustomButton(index);
+        }
+
+        function updateCustomButton(index) {
+            const name = document.getElementById('customBtnName').value.trim();
+            const url = document.getElementById('customBtnUrl').value.trim();
+            const color = document.getElementById('customBtnColor').value;
+
+            if (!name || !url) {
+                alert('Vui lòng nhập đầy đủ tên và đường dẫn!');
+                return;
+            }
+
+            let customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
+            customBtns[index] = { name, url, color };
+            localStorage.setItem('customButtons', JSON.stringify(customBtns));
+
+            document.getElementById('customBtnName').value = '';
+            document.getElementById('customBtnUrl').value = '';
+            document.getElementById('customFormTitle').textContent = 'Thêm nút liên kết tùy chỉnh:';
+            const submitBtn = document.getElementById('customBtnSubmit');
+            submitBtn.textContent = 'Thêm nút';
+            submitBtn.onclick = addCustomButton;
+
+            renderCustomButtons();
+        }
+
         function removeCustomButton(index) {
             let customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
             customBtns.splice(index, 1);
             localStorage.setItem('customButtons', JSON.stringify(customBtns));
             renderCustomButtons();
         }
+
+        let customButtonsSortable = null;
 
         function renderCustomButtons() {
             const container = document.getElementById('customButtonsContainer');
@@ -577,6 +644,7 @@
                 buttonEl.style.color = btn.color;
                 buttonEl.style.borderColor = btn.color;
                 buttonEl.textContent = btn.name;
+                buttonEl.setAttribute('data-index', index);
                 buttonEl.onclick = () => {
                     window.open(btn.url, '_blank', 'noopener,noreferrer');
                 };
@@ -593,10 +661,99 @@
 
                 itemEl.innerHTML = `
                     <span style="color: ${btn.color}; font-weight: bold;">${btn.name}</span>
-                    <button onclick="removeCustomButton(${index})" style="background: none; border: none; color: #EA4335; cursor: pointer; font-weight: bold;">Xóa</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="editCustomButton(${index})" style="background: none; border: none; color: #4285F4; cursor: pointer; font-weight: bold;">Sửa</button>
+                        <button onclick="removeCustomButton(${index})" style="background: none; border: none; color: #EA4335; cursor: pointer; font-weight: bold;">Xóa</button>
+                    </div>
                 `;
                 listContainer.appendChild(itemEl);
             });
+
+            if (customButtonsSortable) {
+                customButtonsSortable.destroy();
+            }
+            customButtonsSortable = new Sortable(container, {
+                animation: 150,
+                onEnd: function () {
+                    const buttons = container.children;
+                    let currentBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
+                    let newCustomBtns = [];
+                    for (let i = 0; i < buttons.length; i++) {
+                        const originalIndex = buttons[i].getAttribute('data-index');
+                        if (originalIndex !== null) {
+                            newCustomBtns.push(currentBtns[originalIndex]);
+                        }
+                    }
+                    localStorage.setItem('customButtons', JSON.stringify(newCustomBtns));
+                    renderCustomButtons();
+                }
+            });
+        }
+
+        // Tính năng Voice Search (Web Speech API chuẩn Google)
+        let recognition = null;
+        let isListening = false;
+
+        function toggleVoiceSearch() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói.');
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'vi-VN';
+                recognition.interimResults = true;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    document.getElementById('voiceOverlay').style.display = 'flex';
+                    document.getElementById('voiceTranscript').textContent = '';
+                };
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    const currentText = finalTranscript || interimTranscript;
+                    document.getElementById('voiceTranscript').textContent = currentText;
+                    document.getElementById('searchInput').value = currentText;
+
+                    if (finalTranscript) {
+                        recognition.stop();
+                        setTimeout(() => {
+                            performSearch('google');
+                        }, 300);
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Lỗi nhận diện giọng nói:', event.error);
+                    document.getElementById('voiceOverlay').style.display = 'none';
+                    isListening = false;
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    document.getElementById('voiceOverlay').style.display = 'none';
+                };
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
         }
 
         function saveToHistory(query) {
