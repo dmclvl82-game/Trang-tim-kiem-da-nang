@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Tìm Kiếm Đa Năng</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #ffffff;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .logo {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            letter-spacing: -2px;
+            text-align: center;
+            user-select: none;
+        }
+
+        @media (max-width: 600px) {
+            .logo { font-size: 2.5rem; }
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 650px;
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            font-size: 16px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:hover, .search-input:focus {
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+            border-color: rgba(223,225,229,0);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9aa0a6;
+            font-size: 18px;
+        }
+
+        .search-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 850px;
+        }
+
+        .btn {
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 20px;
+            color: #3c4043;
+            font-size: 14px;
+            padding: 10px 20px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background-color: #f1f3f4;
+            border-color: #bcc1c6;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        }
+
+        /* Màu sắc nhận diện cho từng nút */
+        .btn-google { color: #1a0dab; border-color: #4285F4; }
+        .btn-bing { color: #0078d4; border-color: #0078d4; }
+        .btn-coccoc { color: #008f5d; border-color: #008f5d; }
+        .btn-yahoo { color: #6001d2; border-color: #6001d2; }
+        .btn-duckduckgo { color: #de5833; border-color: #de5833; }
+        .btn-startpage { color: #3b5998; border-color: #3b5998; }
+        .btn-youtube { color: #ff0000; border-color: #ff0000; }
+        .btn-tiktok { color: #010101; border-color: #010101; }
+        .btn-facebook { color: #1877f2; border-color: #1877f2; }
+
+        /* Nút chuyển đổi Dark Mode góc trên bên phải */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background-color: #f1f3f4;
+            border-color: #bcc1c6;
+            box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        }
+
+        /* Giao diện Dark Mode khi bật thủ công */
+        body.dark-mode {
+            background-color: #202124;
+            color: #e8eaed;
+        }
+
+        body.dark-mode .search-input {
+            background-color: #303134;
+            color: #ffffff;
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .btn {
+            background-color: #303134;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        body.dark-mode .btn:hover {
+            background-color: #3c4043;
+        }
+
+        body.dark-mode .theme-toggle {
+            background-color: #303134;
+            border-color: #5f6368;
+            color: #ffffff;
+        }
+
+        body.dark-mode .theme-toggle:hover {
+            background-color: #3c4043;
+        }
+
+        /* Giao diện Đăng nhập / Đăng ký */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .auth-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        body.dark-mode .auth-card {
+            background: #303134;
+            color: #e8eaed;
+        }
+
+        .auth-card h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dfe1e5;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        body.dark-mode .auth-input {
+            background-color: #202124;
+            color: #fff;
+            border-color: #5f6368;
+        }
+
+        .password-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .password-container .auth-input {
+            margin-bottom: 0;
+            padding-right: 40px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #9aa0a6;
+        }
+
+        .auth-input-user {
+            margin-bottom: 15px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .auth-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .btn-login {
+            background-color: #1a0dab;
+            color: #fff;
+            border-color: #1a0dab;
+        }
+
+        .btn-register {
+            background-color: #f8f9fa;
+            color: #3c4043;
+        }
+
+        body.dark-mode .btn-register {
+            background-color: #202124;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        .btn-guest {
+            width: 100%;
+            background-color: #f8f9fa;
+            color: #3c4043;
+            padding: 10px;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        body.dark-mode .btn-guest {
+            background-color: #202124;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+
+        .auth-error {
+            color: #EA4335;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #EA4335;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Thông tin người dùng đăng nhập ở góc trên bên trái -->
+    <div id="userInfo" class="user-info" style="display: none;">
+        <span>Chào, <strong id="currentUsername"></strong></span>
+        <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+    </div>
+
+    <!-- Hộp thoại Đăng nhập / Đăng ký -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-card">
+            <h2>Đăng Nhập / Đăng Ký</h2>
+            <div id="authError" class="auth-error"></div>
+            <input type="text" id="authUsername" class="auth-input auth-input-user" placeholder="Nhập tên người dùng...">
+            
+            <div class="password-container">
+                <input type="password" id="authPassword" class="auth-input" placeholder="Nhập mật khẩu...">
+                <button type="button" id="togglePassBtn" class="toggle-password" onclick="togglePasswordVisibility()">👁️</button>
+            </div>
+
+            <div class="auth-buttons">
+                <button class="auth-btn btn-login" onclick="handleLogin()">Đăng Nhập</button>
+                <button class="auth-btn btn-register" onclick="handleRegister()">Đăng Ký</button>
+            </div>
+            <button class="auth-btn btn-guest" onclick="handleGuestLogin()">Dùng tài khoản khách</button>
+        </div>
+    </div>
+
+    <!-- Nút bật/tắt Dark Mode -->
+    <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng/Tối">🌙</button>
+
+    <!-- Logo trang web -->
+    <div class="logo">
+        <span style="color:#4285F4;">M</span><span style="color:#EA4335;">u</span><span style="color:#FBBC05;">l</span><span style="color:#4285F4;">t</span><span style="color:#34A853;">i</span><span style="color:#EA4335;">S</span><span style="color:#4285F4;">e</span><span style="color:#34A853;">a</span><span style="color:#EA4335;">r</span><span style="color:#4285F4;">h</span>
+    </div>
+
+    <!-- Thanh nhập từ khóa -->
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Nhập từ khóa hoặc chọn nền tảng bên dưới..." autofocus>
+    </div>
+
+    <!-- Các nút lựa chọn công cụ và nền tảng -->
+    <div class="search-buttons">
+        <button class="btn btn-google" onclick="performSearch('google')">Google</button>
+        <button class="btn btn-bing" onclick="performSearch('bing')">Bing</button>
+        <button class="btn btn-coccoc" onclick="performSearch('coccoc')">Cốc Cốc</button>
+        <button class="btn btn-yahoo" onclick="performSearch('yahoo')">Yahoo!</button>
+        <button class="btn btn-duckduckgo" onclick="performSearch('duckduckgo')">DuckDuckGo</button>
+        <button class="btn btn-startpage" onclick="performSearch('startpage')">Startpage</button>
+        <button class="btn btn-youtube" onclick="performSearch('youtube')">YouTube</button>
+        <button class="btn btn-tiktok" onclick="performSearch('tiktok')">TikTok</button>
+        <button class="btn btn-facebook" onclick="performSearch('facebook')">Facebook</button>
+    </div>
+
+    <script>
+        // Kiểm tra trạng thái đăng nhập khi tải trang
+        window.addEventListener('DOMContentLoaded', () => {
+            const loggedUser = localStorage.getItem('currentUser');
+            if (loggedUser) {
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('currentUsername').textContent = loggedUser;
+            }
+
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeToggleBtn').textContent = '☀️';
+            }
+        });
+
+        // Hàm bật/tắt hiển thị mật khẩu
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('authPassword');
+            const toggleBtn = document.getElementById('togglePassBtn');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+
+        // Đăng nhập bằng tài khoản khách
+        function handleGuestLogin() {
+            localStorage.setItem('currentUser', 'Khách');
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('currentUsername').textContent = 'Khách';
+        }
+
+        function handleRegister() {
+            const user = document.getElementById('authUsername').value.trim();
+            const pass = document.getElementById('authPassword').value.trim();
+            const errorDiv = document.getElementById('authError');
+
+            if (!user || !pass) {
+                errorDiv.textContent = 'Vui lòng nhập đầy đủ tên và mật khẩu!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('users') || '{}');
+            if (users[user]) {
+                errorDiv.textContent = 'Tên tài khoản này đã tồn tại!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            users[user] = pass;
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', user);
+
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('currentUsername').textContent = user;
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('authUsername').value.trim();
+            const pass = document.getElementById('authPassword').value.trim();
+            const errorDiv = document.getElementById('authError');
+
+            if (!user || !pass) {
+                errorDiv.textContent = 'Vui lòng nhập đầy đủ tên và mật khẩu!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            let users = JSON.parse(localStorage.getItem('users') || '{}');
+            if (!users[user] || users[user] !== pass) {
+                errorDiv.textContent = 'Sai tên tài khoản hoặc mật khẩu!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            localStorage.setItem('currentUser', user);
+
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'flex';
+            document.getElementById('currentUsername').textContent = user;
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            document.getElementById('authUsername').value = '';
+            document.getElementById('authPassword').value = '';
+            document.getElementById('authError').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('authOverlay').style.display = 'flex';
+        }
+
+        // Hàm chuyển đổi bật/tắt Dark Mode và lưu trạng thái vào trình duyệt
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeToggleBtn').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        function performSearch(engine) {
+            const query = document.getElementById('searchInput').value.trim();
+            let targetUrl = '';
+
+            if (query === "") {
+                if (engine === 'google') targetUrl = 'https://www.google.com';
+                else if (engine === 'bing') targetUrl = 'https://www.bing.com';
+                else if (engine === 'coccoc') targetUrl = 'https://coccoc.com';
+                else if (engine === 'yahoo') targetUrl = 'https://www.yahoo.com';
+                else if (engine === 'duckduckgo') targetUrl = 'https://duckduckgo.com';
+                else if (engine === 'startpage') targetUrl = 'https://www.startpage.com';
+                else if (engine === 'youtube') targetUrl = 'https://www.youtube.com';
+                else if (engine === 'tiktok') targetUrl = 'https://www.tiktok.com';
+                else if (engine === 'facebook') targetUrl = 'https://www.facebook.com';
+            } else {
+                const encodedQuery = encodeURIComponent(query);
+                if (engine === 'google') targetUrl = `https://www.google.com/search?q=${encodedQuery}`;
+                else if (engine === 'bing') targetUrl = `https://www.bing.com/search?q=${encodedQuery}`;
+                else if (engine === 'coccoc') targetUrl = `https://coccoc.com/search?q=${encodedQuery}`;
+                else if (engine === 'yahoo') targetUrl = `https://vn.search.yahoo.com/search?p=${encodedQuery}`;
+                else if (engine === 'duckduckgo') targetUrl = `https://duckduckgo.com/?q=${encodedQuery}`;
+                else if (engine === 'startpage') targetUrl = `https://www.startpage.com/do/search?q=${encodedQuery}`;
+                else if (engine === 'youtube') targetUrl = `https://www.youtube.com/results?search_query=${encodedQuery}`;
+                else if (engine === 'tiktok') targetUrl = `https://www.tiktok.com/search?q=${encodedQuery}`;
+                else if (engine === 'facebook') targetUrl = `https://www.facebook.com/search/top?q=${encodedQuery}`;
+            }
+
+            if (targetUrl) {
+                // Bảo mật: Thêm noopener, noreferrer
+                window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                performSearch('google');
+            }
+        });
+    </script>
+
+</body>
+</html>
