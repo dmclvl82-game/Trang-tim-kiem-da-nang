@@ -712,7 +712,7 @@
             }
         }
 
-        // Tính năng Voice Search (Web Speech API chuẩn Google tự động tìm kiếm khi nói xong)
+        // Tính năng Voice Search tự động ngắt câu và tìm kiếm không cần bấm nút thoát
         let recognition = null;
         let isListening = false;
         let hasSearched = false;
@@ -756,10 +756,11 @@
                     if (finalTranscript && !hasSearched) {
                         hasSearched = true;
                         recognition.stop();
+                        document.getElementById('voiceOverlay').style.display = 'none';
                         setTimeout(() => {
                             const defaultEng = localStorage.getItem('defaultEngine') || 'google';
                             performSearch(defaultEng);
-                        }, 300);
+                        }, 200);
                     }
                 };
 
@@ -778,7 +779,7 @@
                         setTimeout(() => {
                             const defaultEng = localStorage.getItem('defaultEngine') || 'google';
                             performSearch(defaultEng);
-                        }, 300);
+                        }, 200);
                     }
                 };
             }
