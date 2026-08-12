@@ -180,18 +180,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,.1);
         }
 
-        .btn-google { color: #1a0dab; border-color: #4285F4; }
-        .btn-bing { color: #0078d4; border-color: #0078d4; }
-        .btn-coccoc { color: #008f5d; border-color: #008f5d; }
-        .btn-yahoo { color: #6001d2; border-color: #6001d2; }
-        .btn-duckduckgo { color: #de5833; border-color: #de5833; }
-        .btn-startpage { color: #3b5998; border-color: #3b5998; }
-        .btn-youtube { color: #ff0000; border-color: #ff0000; }
-        .btn-tiktok { color: #010101; border-color: #010101; }
-        .btn-facebook { color: #1877f2; border-color: #1877f2; }
-        .btn-gemini { color: #4285F4; border-color: #4285F4; }
-        .btn-chatgpt { color: #10a37f; border-color: #10a37f; }
-
         .theme-toggle {
             position: absolute;
             top: 20px;
@@ -440,11 +428,11 @@
     <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng/Tối">🌙</button>
     <button id="settingsToggleBtn" class="theme-toggle" style="right: 70px;" onclick="toggleSettings()" title="Cài đặt hình nền & Nút">⚙️</button>
 
-    <!-- Modal Cài đặt hình nền và nút tùy chỉnh -->
+    <!-- Modal Cài đặt hình nền, công cụ mặc định và quản lý nút -->
     <div id="settingsOverlay" class="auth-overlay" style="display: none;">
-        <div class="auth-card" style="max-width: 450px; text-align: left;">
+        <div class="auth-card" style="max-width: 450px; text-align: left; max-height: 90vh; overflow-y: auto;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; font-size: 20px;">Cài đặt hình nền & Nút</h2>
+                <h2 style="margin: 0; font-size: 20px;">Cài đặt</h2>
                 <button onclick="toggleSettings()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: inherit;">✕</button>
             </div>
             
@@ -454,20 +442,29 @@
                 <button class="btn" style="margin-top: 8px; width: 100%;" onclick="removeBgImage()">Xóa hình nền</button>
             </div>
 
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;">Công cụ tìm kiếm mặc định (khi nhấn Enter):</label>
+                <select id="defaultEngineSelect" class="auth-input" style="padding: 10px;" onchange="changeDefaultEngine(event)"></select>
+            </div>
+
             <div style="margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;" id="customFormTitle">Thêm nút liên kết tùy chỉnh:</label>
-                <input type="text" id="customBtnName" class="auth-input" placeholder="Tên nút..." style="margin-bottom: 8px;">
-                <input type="text" id="customBtnUrl" class="auth-input" placeholder="Đường dẫn (https://...)..." style="margin-bottom: 8px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;">Thêm công cụ tìm kiếm mới:</label>
+                <input type="text" id="customBtnName" class="auth-input" placeholder="Tên công cụ..." style="margin-bottom: 8px;">
+                <input type="text" id="customBtnUrl" class="auth-input" placeholder="Đường dẫn (VD: https://...)..." style="margin-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <label style="font-size: 13px;">Màu chữ:</label>
+                    <label style="font-size: 13px;">Màu sắc:</label>
                     <input type="color" id="customBtnColor" value="#3c4043" style="border: none; width: 40px; height: 30px; cursor: pointer; background: none;">
                 </div>
-                <button id="customBtnSubmit" class="btn btn-login" style="width: 100%;" onclick="addCustomButton()">Thêm nút</button>
+                <button class="btn btn-login" style="width: 100%;" onclick="addSearchEngine()">Thêm công cụ</button>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;">Quản lý công cụ (Xóa):</label>
+                <div id="enginesListContainer" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
             </div>
 
             <div>
-                <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;">Danh sách nút tùy chỉnh:</label>
-                <div id="customButtonsList" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+                <button class="btn" style="width: 100%; background-color: #EA4335; color: #fff; border-color: #EA4335;" onclick="factoryReset()">Khôi phục cài đặt gốc</button>
             </div>
         </div>
     </div>
@@ -485,24 +482,32 @@
     <!-- Vùng hiển thị lịch sử -->
     <div id="historyContainer" class="history-container"></div>
 
-    <div class="search-buttons">
-        <button class="btn btn-google" onclick="performSearch('google')">Google</button>
-        <button class="btn btn-bing" onclick="performSearch('bing')">Bing</button>
-        <button class="btn btn-coccoc" onclick="performSearch('coccoc')">Cốc Cốc</button>
-        <button class="btn btn-yahoo" onclick="performSearch('yahoo')">Yahoo!</button>
-        <button class="btn btn-duckduckgo" onclick="performSearch('duckduckgo')">DuckDuckGo</button>
-        <button class="btn btn-startpage" onclick="performSearch('startpage')">Startpage</button>
-        <button class="btn btn-youtube" onclick="performSearch('youtube')">YouTube</button>
-        <button class="btn btn-tiktok" onclick="performSearch('tiktok')">TikTok</button>
-        <button class="btn btn-facebook" onclick="performSearch('facebook')">Facebook</button>
-        <button class="btn btn-gemini" onclick="performSearch('gemini')">Gemini</button>
-        <button class="btn btn-chatgpt" onclick="performSearch('chatgpt')">ChatGPT</button>
-    </div>
-
-    <!-- Vùng chứa các nút tùy chỉnh của người dùng -->
-    <div class="search-buttons" id="customButtonsContainer" style="margin-top: 10px;"></div>
+    <!-- Vùng chứa các nút công cụ tìm kiếm (có thể kéo thả, thêm, xóa) -->
+    <div class="search-buttons" id="searchButtonsContainer"></div>
 
     <script>
+        const defaultEngines = [
+            { id: 'google', name: 'Google', color: '#1a0dab', borderColor: '#4285F4', type: 'builtin', url: 'https://www.google.com/search?q=' },
+            { id: 'bing', name: 'Bing', color: '#0078d4', borderColor: '#0078d4', type: 'builtin', url: 'https://www.bing.com/search?q=' },
+            { id: 'coccoc', name: 'Cốc Cốc', color: '#008f5d', borderColor: '#008f5d', type: 'builtin', url: 'https://coccoc.com/search?q=' },
+            { id: 'yahoo', name: 'Yahoo!', color: '#6001d2', borderColor: '#6001d2', type: 'builtin', url: 'https://vn.search.yahoo.com/search?p=' },
+            { id: 'duckduckgo', name: 'DuckDuckGo', color: '#de5833', borderColor: '#de5833', type: 'builtin', url: 'https://duckduckgo.com/?q=' },
+            { id: 'startpage', name: 'Startpage', color: '#3b5998', borderColor: '#3b5998', type: 'builtin', url: 'https://www.startpage.com/do/search?q=' },
+            { id: 'youtube', name: 'YouTube', color: '#ff0000', borderColor: '#ff0000', type: 'builtin', url: 'https://www.youtube.com/results?search_query=' },
+            { id: 'tiktok', name: 'TikTok', color: '#010101', borderColor: '#010101', type: 'builtin', url: 'https://www.tiktok.com/search?q=' },
+            { id: 'facebook', name: 'Facebook', color: '#1877f2', borderColor: '#1877f2', type: 'builtin', url: 'https://www.facebook.com/search/top?q=' },
+            { id: 'gemini', name: 'Gemini', color: '#4285F4', borderColor: '#4285F4', type: 'builtin', url: 'https://gemini.google.com' },
+            { id: 'chatgpt', name: 'ChatGPT', color: '#10a37f', borderColor: '#10a37f', type: 'builtin', url: 'https://chatgpt.com' }
+        ];
+
+        function getEngines() {
+            const stored = localStorage.getItem('searchEngines');
+            if (stored) {
+                try { return JSON.parse(stored); } catch (e) {}
+            }
+            return JSON.parse(JSON.stringify(defaultEngines));
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const loggedUser = localStorage.getItem('currentUser');
             if (loggedUser) {
@@ -523,7 +528,9 @@
             }
             
             renderHistory();
-            renderCustomButtons();
+            renderSearchButtons();
+            renderDefaultEngineSelect();
+            renderSettingsEnginesList();
         });
 
         function handleBgUpload(event) {
@@ -559,9 +566,35 @@
         function toggleSettings() {
             const overlay = document.getElementById('settingsOverlay');
             overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex';
+            if (overlay.style.display === 'flex') {
+                renderDefaultEngineSelect();
+                renderSettingsEnginesList();
+            }
         }
 
-        function addCustomButton() {
+        function changeDefaultEngine(event) {
+            localStorage.setItem('defaultEngine', event.target.value);
+        }
+
+        function renderDefaultEngineSelect() {
+            const select = document.getElementById('defaultEngineSelect');
+            const engines = getEngines();
+            const currentDefault = localStorage.getItem('defaultEngine') || 'google';
+            const allowedDefaultIds = ['google', 'coccoc', 'bing', 'yahoo', 'duckduckgo', 'startpage'];
+            
+            select.innerHTML = '';
+            engines.filter(engine => allowedDefaultIds.includes(engine.id)).forEach(engine => {
+                const option = document.createElement('option');
+                option.value = engine.id;
+                option.textContent = engine.name;
+                if (engine.id === currentDefault) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function addSearchEngine() {
             const name = document.getElementById('customBtnName').value.trim();
             const url = document.getElementById('customBtnUrl').value.trim();
             const color = document.getElementById('customBtnColor').value;
@@ -571,86 +604,90 @@
                 return;
             }
 
-            let customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
-            customBtns.push({ name, url, color });
-            localStorage.setItem('customButtons', JSON.stringify(customBtns));
+            let engines = getEngines();
+            const newId = 'engine_' + Date.now();
+            engines.push({
+                id: newId,
+                name: name,
+                color: color,
+                borderColor: color,
+                type: 'custom',
+                url: url
+            });
+            localStorage.setItem('searchEngines', JSON.stringify(engines));
 
             document.getElementById('customBtnName').value = '';
             document.getElementById('customBtnUrl').value = '';
-            renderCustomButtons();
+            renderSearchButtons();
+            renderDefaultEngineSelect();
+            renderSettingsEnginesList();
         }
 
-        function editCustomButton(index) {
-            let customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
-            const btn = customBtns[index];
-            document.getElementById('customBtnName').value = btn.name;
-            document.getElementById('customBtnUrl').value = btn.url;
-            document.getElementById('customBtnColor').value = btn.color;
-            
-            document.getElementById('customFormTitle').textContent = 'Sửa nút liên kết tùy chỉnh:';
-            const submitBtn = document.getElementById('customBtnSubmit');
-            submitBtn.textContent = 'Cập nhật nút';
-            submitBtn.onclick = () => updateCustomButton(index);
-        }
+        function removeSearchEngine(id) {
+            let engines = getEngines();
+            engines = engines.filter(e => e.id !== id);
+            localStorage.setItem('searchEngines', JSON.stringify(engines));
 
-        function updateCustomButton(index) {
-            const name = document.getElementById('customBtnName').value.trim();
-            const url = document.getElementById('customBtnUrl').value.trim();
-            const color = document.getElementById('customBtnColor').value;
-
-            if (!name || !url) {
-                alert('Vui lòng nhập đầy đủ tên và đường dẫn!');
-                return;
+            const defaultEng = localStorage.getItem('defaultEngine');
+            if (defaultEng === id) {
+                localStorage.setItem('defaultEngine', 'google');
             }
 
-            let customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
-            customBtns[index] = { name, url, color };
-            localStorage.setItem('customButtons', JSON.stringify(customBtns));
-
-            document.getElementById('customBtnName').value = '';
-            document.getElementById('customBtnUrl').value = '';
-            document.getElementById('customFormTitle').textContent = 'Thêm nút liên kết tùy chỉnh:';
-            const submitBtn = document.getElementById('customBtnSubmit');
-            submitBtn.textContent = 'Thêm nút';
-            submitBtn.onclick = addCustomButton;
-
-            renderCustomButtons();
+            renderSearchButtons();
+            renderDefaultEngineSelect();
+            renderSettingsEnginesList();
         }
 
-        function removeCustomButton(index) {
-            let customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
-            customBtns.splice(index, 1);
-            localStorage.setItem('customButtons', JSON.stringify(customBtns));
-            renderCustomButtons();
-        }
+        let searchButtonsSortable = null;
 
-        let customButtonsSortable = null;
-
-        function renderCustomButtons() {
-            const container = document.getElementById('customButtonsContainer');
-            const listContainer = document.getElementById('customButtonsList');
-            const customBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
-            
+        function renderSearchButtons() {
+            const container = document.getElementById('searchButtonsContainer');
+            const engines = getEngines();
             container.innerHTML = '';
-            listContainer.innerHTML = '';
 
-            if (customBtns.length === 0) {
-                listContainer.innerHTML = '<span style="font-size: 12px; color: #9aa0a6;">Chưa có nút tùy chỉnh nào.</span>';
-                return;
-            }
-
-            customBtns.forEach((btn, index) => {
+            engines.forEach(engine => {
                 const buttonEl = document.createElement('button');
                 buttonEl.className = 'btn';
-                buttonEl.style.color = btn.color;
-                buttonEl.style.borderColor = btn.color;
-                buttonEl.textContent = btn.name;
-                buttonEl.setAttribute('data-index', index);
-                buttonEl.onclick = () => {
-                    window.open(btn.url, '_blank', 'noopener,noreferrer');
-                };
+                buttonEl.style.color = engine.color;
+                buttonEl.style.borderColor = engine.borderColor || engine.color;
+                buttonEl.textContent = engine.name;
+                buttonEl.setAttribute('data-id', engine.id);
+                buttonEl.onclick = () => performSearch(engine.id);
                 container.appendChild(buttonEl);
+            });
 
+            if (searchButtonsSortable) {
+                searchButtonsSortable.destroy();
+            }
+            searchButtonsSortable = new Sortable(container, {
+                animation: 150,
+                onEnd: function () {
+                    const buttons = container.children;
+                    let engines = getEngines();
+                    let newEngines = [];
+                    for (let i = 0; i < buttons.length; i++) {
+                        const id = buttons[i].getAttribute('data-id');
+                        const found = engines.find(e => e.id === id);
+                        if (found) newEngines.push(found);
+                    }
+                    localStorage.setItem('searchEngines', JSON.stringify(newEngines));
+                    renderDefaultEngineSelect();
+                    renderSettingsEnginesList();
+                }
+            });
+        }
+
+        function renderSettingsEnginesList() {
+            const listContainer = document.getElementById('enginesListContainer');
+            const engines = getEngines();
+            listContainer.innerHTML = '';
+
+            if (engines.length === 0) {
+                listContainer.innerHTML = '<span style="font-size: 12px; color: #9aa0a6;">Không có công cụ nào.</span>';
+                return;
+            }
+
+            engines.forEach(engine => {
                 const itemEl = document.createElement('div');
                 itemEl.style.display = 'flex';
                 itemEl.style.justifyContent = 'space-between';
@@ -661,34 +698,18 @@
                 itemEl.style.fontSize = '13px';
 
                 itemEl.innerHTML = `
-                    <span style="color: ${btn.color}; font-weight: bold;">${btn.name}</span>
-                    <div style="display: flex; gap: 8px;">
-                        <button onclick="editCustomButton(${index})" style="background: none; border: none; color: #4285F4; cursor: pointer; font-weight: bold;">Sửa</button>
-                        <button onclick="removeCustomButton(${index})" style="background: none; border: none; color: #EA4335; cursor: pointer; font-weight: bold;">Xóa</button>
-                    </div>
+                    <span style="color: ${engine.color}; font-weight: bold;">${engine.name}</span>
+                    <button onclick="removeSearchEngine('${engine.id}')" style="background: none; border: none; color: #EA4335; cursor: pointer; font-weight: bold;">Xóa</button>
                 `;
                 listContainer.appendChild(itemEl);
             });
+        }
 
-            if (customButtonsSortable) {
-                customButtonsSortable.destroy();
+        function factoryReset() {
+            if (confirm('Bạn có chắc chắn muốn khôi phục cài đặt gốc không? Mọi tùy chỉnh, lịch sử và cài đặt sẽ bị xóa.')) {
+                localStorage.clear();
+                location.reload();
             }
-            customButtonsSortable = new Sortable(container, {
-                animation: 150,
-                onEnd: function () {
-                    const buttons = container.children;
-                    let currentBtns = JSON.parse(localStorage.getItem('customButtons') || '[]');
-                    let newCustomBtns = [];
-                    for (let i = 0; i < buttons.length; i++) {
-                        const originalIndex = buttons[i].getAttribute('data-index');
-                        if (originalIndex !== null) {
-                            newCustomBtns.push(currentBtns[originalIndex]);
-                        }
-                    }
-                    localStorage.setItem('customButtons', JSON.stringify(newCustomBtns));
-                    renderCustomButtons();
-                }
-            });
         }
 
         // Tính năng Voice Search (Web Speech API chuẩn Google)
@@ -733,7 +754,8 @@
                     if (finalTranscript) {
                         recognition.stop();
                         setTimeout(() => {
-                            performSearch('google');
+                            const defaultEng = localStorage.getItem('defaultEngine') || 'google';
+                            performSearch(defaultEng);
                         }, 300);
                     }
                 };
@@ -802,7 +824,8 @@
                 textSpan.textContent = item;
                 textSpan.onclick = () => {
                     document.getElementById('searchInput').value = item;
-                    performSearch('google');
+                    const defaultEng = localStorage.getItem('defaultEngine') || 'google';
+                    performSearch(defaultEng);
                 };
                 
                 const closeBtn = document.createElement('span');
@@ -916,39 +939,27 @@
             document.getElementById('themeToggleBtn').textContent = isDark ? '☀️' : '🌙';
         }
 
-        function performSearch(engine) {
+        function performSearch(engineId) {
             const query = document.getElementById('searchInput').value.trim();
-            let targetUrl = '';
+            let engines = getEngines();
+            let engine = engines.find(e => e.id === engineId);
+            if (!engine) return;
 
             if (query !== "") {
                 saveToHistory(query);
             }
 
-            if (query === "") {
-                if (engine === 'google') targetUrl = 'https://www.google.com';
-                else if (engine === 'bing') targetUrl = 'https://www.bing.com';
-                else if (engine === 'coccoc') targetUrl = 'https://coccoc.com';
-                else if (engine === 'yahoo') targetUrl = 'https://www.yahoo.com';
-                else if (engine === 'duckduckgo') targetUrl = 'https://duckduckgo.com';
-                else if (engine === 'startpage') targetUrl = 'https://www.startpage.com';
-                else if (engine === 'youtube') targetUrl = 'https://www.youtube.com';
-                else if (engine === 'tiktok') targetUrl = 'https://www.tiktok.com';
-                else if (engine === 'facebook') targetUrl = 'https://www.facebook.com';
-                else if (engine === 'gemini') targetUrl = 'https://gemini.google.com';
-                else if (engine === 'chatgpt') targetUrl = 'https://chatgpt.com';
+            let targetUrl = '';
+            if (engine.type === 'builtin') {
+                if (engine.id === 'gemini') {
+                    targetUrl = 'https://gemini.google.com';
+                } else if (engine.id === 'chatgpt') {
+                    targetUrl = 'https://chatgpt.com';
+                } else {
+                    targetUrl = query === "" ? engine.url.split('?')[0] : engine.url + encodeURIComponent(query);
+                }
             } else {
-                const encodedQuery = encodeURIComponent(query);
-                if (engine === 'google') targetUrl = `https://www.google.com/search?q=${encodedQuery}`;
-                else if (engine === 'bing') targetUrl = `https://www.bing.com/search?q=${encodedQuery}`;
-                else if (engine === 'coccoc') targetUrl = `https://coccoc.com/search?q=${encodedQuery}`;
-                else if (engine === 'yahoo') targetUrl = `https://vn.search.yahoo.com/search?p=${encodedQuery}`;
-                else if (engine === 'duckduckgo') targetUrl = `https://duckduckgo.com/?q=${encodedQuery}`;
-                else if (engine === 'startpage') targetUrl = `https://www.startpage.com/do/search?q=${encodedQuery}`;
-                else if (engine === 'youtube') targetUrl = `https://www.youtube.com/results?search_query=${encodedQuery}`;
-                else if (engine === 'tiktok') targetUrl = `https://www.tiktok.com/search?q=${encodedQuery}`;
-                else if (engine === 'facebook') targetUrl = `https://www.facebook.com/search/top?q=${encodedQuery}`;
-                else if (engine === 'gemini') targetUrl = 'https://gemini.google.com';
-                else if (engine === 'chatgpt') targetUrl = 'https://chatgpt.com';
+                targetUrl = query === "" ? engine.url : engine.url + encodeURIComponent(query);
             }
 
             if (targetUrl) {
@@ -958,7 +969,8 @@
 
         document.getElementById('searchInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                performSearch('google');
+                const defaultEng = localStorage.getItem('defaultEngine') || 'google';
+                performSearch(defaultEng);
             }
         });
     </script>
