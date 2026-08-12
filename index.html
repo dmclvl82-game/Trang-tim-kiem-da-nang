@@ -135,7 +135,12 @@
             transform: translateY(-50%);
             color: #9aa0a6;
             font-size: 18px;
+            cursor: pointer;
+            outline: none;
         }
+        .search-icon:hover { color: #4285F4; }
+        body.dark-mode .search-icon { color: #9aa0a6; }
+        body.dark-mode .search-icon:hover { color: #8ab4f8; }
 
         .voice-btn {
             position: absolute;
@@ -474,7 +479,7 @@
     </div>
 
     <div class="search-box">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon" onclick="triggerDefaultSearch()" title="Tìm kiếm">🔍</span>
         <input type="text" id="searchInput" class="search-input" placeholder="Nhập từ khóa hoặc chọn nền tảng bên dưới..." autofocus>
         <button type="button" id="voiceBtn" class="voice-btn" onclick="toggleVoiceSearch()" title="Tìm kiếm bằng giọng nói">🎤</button>
     </div>
@@ -807,6 +812,11 @@
             }
         }
 
+        function triggerDefaultSearch() {
+            const defaultEng = localStorage.getItem('defaultEngine') || 'google';
+            performSearch(defaultEng);
+        }
+
         function saveToHistory(query) {
             if (!query.trim()) return;
             let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
@@ -989,8 +999,7 @@
 
         document.getElementById('searchInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                const defaultEng = localStorage.getItem('defaultEngine') || 'google';
-                performSearch(defaultEng);
+                triggerDefaultSearch();
             }
         });
     </script>
