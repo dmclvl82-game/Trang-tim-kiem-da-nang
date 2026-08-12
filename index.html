@@ -415,13 +415,13 @@
         </div>
     </div>
 
-    <!-- Modal thông báo đang nghe giọng nói có thêm nút Thoát -->
+    <!-- Modal thông báo đang nghe giọng nói với nút Thoát và tìm kiếm -->
     <div id="voiceOverlay" class="auth-overlay" style="display: none;">
         <div class="auth-card" style="max-width: 320px; text-align: center;">
             <div style="font-size: 40px; margin-bottom: 15px;">🎤</div>
             <h3 style="font-size: 18px; margin-bottom: 10px;">tôi đang nghe đây!</h3>
             <p id="voiceTranscript" style="font-size: 14px; color: #5f6368; min-height: 20px; margin-bottom: 15px;"></p>
-            <button class="btn" onclick="closeVoiceSearch()" style="width: 100%;">Thoát</button>
+            <button class="btn" onclick="closeVoiceSearch()" style="width: 100%;">Thoát và tìm kiếm</button>
         </div>
     </div>
 
@@ -712,7 +712,7 @@
             }
         }
 
-        // Tính năng Voice Search tự động ngắt câu và tìm kiếm không cần bấm nút thoát
+        // Tính năng Voice Search tự động ngắt câu và tìm kiếm
         let recognition = null;
         let isListening = false;
         let hasSearched = false;
@@ -797,6 +797,14 @@
             }
             isListening = false;
             document.getElementById('voiceOverlay').style.display = 'none';
+            const query = document.getElementById('searchInput').value.trim();
+            if (query && !hasSearched) {
+                hasSearched = true;
+                setTimeout(() => {
+                    const defaultEng = localStorage.getItem('defaultEngine') || 'google';
+                    performSearch(defaultEng);
+                }, 200);
+            }
         }
 
         function saveToHistory(query) {
