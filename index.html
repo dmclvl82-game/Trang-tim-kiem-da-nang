@@ -427,12 +427,13 @@
         </div>
     </div>
 
-    <!-- Modal thông báo đang nghe giọng nói -->
+    <!-- Modal thông báo đang nghe giọng nói có thêm nút Thoát -->
     <div id="voiceOverlay" class="auth-overlay" style="display: none;">
         <div class="auth-card" style="max-width: 320px; text-align: center;">
             <div style="font-size: 40px; margin-bottom: 15px;">🎤</div>
             <h3 style="font-size: 18px; margin-bottom: 10px;">tôi đang nghe đây!</h3>
-            <p id="voiceTranscript" style="font-size: 14px; color: #5f6368; min-height: 20px;"></p>
+            <p id="voiceTranscript" style="font-size: 14px; color: #5f6368; min-height: 20px; margin-bottom: 15px;"></p>
+            <button class="btn" onclick="closeVoiceSearch()" style="width: 100%;">Thoát</button>
         </div>
     </div>
 
@@ -756,6 +757,14 @@
             }
         }
 
+        function closeVoiceSearch() {
+            if (recognition) {
+                recognition.stop();
+            }
+            isListening = false;
+            document.getElementById('voiceOverlay').style.display = 'none';
+        }
+
         function saveToHistory(query) {
             if (!query.trim()) return;
             let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
@@ -956,4 +965,3 @@
 
 </body>
 </html>
-
