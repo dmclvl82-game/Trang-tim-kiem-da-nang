@@ -689,11 +689,9 @@
             renderWorkspaceNotesList();
             handleInputChange();
 
-            // Khởi động đồng hồ, lịch & thời tiết
             initClockAndCalendar();
             initWeatherWidget();
 
-            // Đóng khung gợi ý khi click ra ngoài
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.search-box')) {
                     hideSuggestions();
@@ -708,25 +706,21 @@
         }
 
         function openNotesWorkspace() {
-            // Ẩn các thành phần tìm kiếm chính để nhường chỗ cho trang con ghi chú
             document.querySelector('.logo').style.display = 'none';
             document.querySelector('.search-box').style.display = 'none';
             document.getElementById('historyContainer').style.display = 'none';
             document.getElementById('searchButtonsContainer').style.display = 'none';
             
-            // Hiển thị trang con ghi chú
             document.getElementById('notesWorkspace').style.display = 'block';
             renderWorkspaceNotesList();
         }
 
         function closeNotesWorkspace() {
-            // Hiển thị lại các thành phần trang chính
             document.querySelector('.logo').style.display = 'block';
             document.querySelector('.search-box').style.display = 'block';
             document.getElementById('historyContainer').style.display = 'flex';
             document.getElementById('searchButtonsContainer').style.display = 'flex';
             
-            // Ẩn trang con ghi chú
             document.getElementById('notesWorkspace').style.display = 'none';
         }
 
@@ -856,7 +850,7 @@
                         fetchWeather(position.coords.latitude, position.coords.longitude);
                     },
                     () => {
-                        fetchWeather(21.0285, 105.8542); // Mặc định Hà Nội
+                        fetchWeather(21.0285, 105.8542);
                     },
                     { timeout: 5000 }
                 );
@@ -897,9 +891,7 @@
             return { icon: '🌤️', text: 'Bình thường' };
         }
 
-        // --- TÍNH NĂNG GỢI Ý TỪ KHÓA ---
-        let suggestionTimeout = null;
-
+        // --- TÍNH NĂNG GỢI Ý TỪ KHÓA TỨC THÌ ---
         function handleInputChange() {
             const input = document.getElementById('searchInput');
             const clearBtn = document.getElementById('clearBtn');
@@ -907,8 +899,8 @@
 
             if (query.length > 0) {
                 clearBtn.style.display = 'block';
-                clearTimeout(suggestionTimeout);
-                suggestionTimeout = setTimeout(() => fetchSuggestions(query), 200);
+                // Gọi trực tiếp fetchSuggestions ngay lập tức khi nhập ký tự (không dùng setTimeout delay)
+                fetchSuggestions(query);
             } else {
                 clearBtn.style.display = 'none';
                 hideSuggestions();
