@@ -891,16 +891,21 @@
             return { icon: '🌤️', text: 'Bình thường' };
         }
 
-        // --- TÍNH NĂNG GỢI Ý TỪ KHÓA TỨC THÌ ---
+        // --- TÍNH NĂNG GỢI Ý TỪ KHÓA TỨC THÌ (ĐÃ CẬP NHẬT DEBOUNCE) ---
+        let debounceTimer;
+        let selectedSuggestionIndex = -1;
+
         function handleInputChange() {
             const input = document.getElementById('searchInput');
             const clearBtn = document.getElementById('clearBtn');
             const query = input.value.trim();
 
+            selectedSuggestionIndex = -1;
+
             if (query.length > 0) {
                 clearBtn.style.display = 'block';
-                // Gọi trực tiếp fetchSuggestions ngay lập tức khi nhập ký tự (không dùng setTimeout delay)
-                fetchSuggestions(query);
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => fetchSuggestions(query), 200);
             } else {
                 clearBtn.style.display = 'none';
                 hideSuggestions();
@@ -937,19 +942,39 @@
         function renderSuggestions(suggestions) {
             const container = document.getElementById('suggestionsContainer');
             container.innerHTML = '';
+            selectedSuggestionIndex = -1;
             
-            suggestions.forEach(item => {
+            suggestions.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
                 div.textContent = item;
+                div.dataset.index = index;
                 div.onclick = () => {
                     document.getElementById('searchInput').value = item;
                     hideSuggestions();
                     triggerDefaultSearch();
                 };
+                div.onmouseover = () => {
+                    selectedSuggestionIndex = index;
+                    updateSuggestionSelection();
+                };
                 container.appendChild(div);
             });
             container.style.display = 'block';
+        }
+
+        function updateSuggestionSelection() {
+            const items = document.querySelectorAll('.suggestion-item');
+            items.forEach((item, index) => {
+                if (index === selectedSuggestionIndex) {
+                    item.style.backgroundColor = document.body.classList.contains('dark-mode') ? '#3c4043' : '#f1f3f4';
+                } else {
+                    item.style.backgroundColor = '';
+                }
+            });
+            if (selectedSuggestionIndex >= 0 && selectedSuggestionIndex < items.length) {
+                items[selectedSuggestionIndex].scrollIntoView({ block: 'nearest' });
+            }
         }
 
         function hideSuggestions() {
@@ -1445,8 +1470,29 @@
             }
         }
 
-        document.getElementById('searchInput').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
+        document.getElementById('searchInput').addEventListener('keydown', function(event) {
+            const container = document.getElementById('suggestionsContainer');
+            const items = container.querySelectorAll('.suggestion-item');
+
+            if (container.style.display === 'block') {
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, items.length - 1);
+                    updateSuggestionSelection();
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, 0);
+                    updateSuggestionSelection();
+                } else if (event.key === 'Enter') {
+                    if (selectedSuggestionIndex >= 0 && items[selectedSuggestionIndex]) {
+                        event.preventDefault();
+                        items[selectedSuggestionIndex].click();
+                    } else {
+                        hideSuggestions();
+                        triggerDefaultSearch();
+                    }
+                }
+            } else if (event.key === 'Enter') {
                 hideSuggestions();
                 triggerDefaultSearch();
             }
