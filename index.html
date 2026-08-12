@@ -712,9 +712,10 @@
             }
         }
 
-        // Tính năng Voice Search (Web Speech API chuẩn Google)
+        // Tính năng Voice Search (Web Speech API chuẩn Google tự động tìm kiếm khi nói xong)
         let recognition = null;
         let isListening = false;
+        let hasSearched = false;
 
         function toggleVoiceSearch() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -731,6 +732,7 @@
 
                 recognition.onstart = () => {
                     isListening = true;
+                    hasSearched = false;
                     document.getElementById('voiceOverlay').style.display = 'flex';
                     document.getElementById('voiceTranscript').textContent = '';
                 };
@@ -751,7 +753,8 @@
                     document.getElementById('voiceTranscript').textContent = currentText;
                     document.getElementById('searchInput').value = currentText;
 
-                    if (finalTranscript) {
+                    if (finalTranscript && !hasSearched) {
+                        hasSearched = true;
                         recognition.stop();
                         setTimeout(() => {
                             const defaultEng = localStorage.getItem('defaultEngine') || 'google';
@@ -769,6 +772,14 @@
                 recognition.onend = () => {
                     isListening = false;
                     document.getElementById('voiceOverlay').style.display = 'none';
+                    const query = document.getElementById('searchInput').value.trim();
+                    if (query && !hasSearched) {
+                        hasSearched = true;
+                        setTimeout(() => {
+                            const defaultEng = localStorage.getItem('defaultEngine') || 'google';
+                            performSearch(defaultEng);
+                        }, 300);
+                    }
                 };
             }
 
