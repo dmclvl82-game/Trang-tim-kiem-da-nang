@@ -115,7 +115,7 @@
 
         .search-input {
             width: 100%;
-            padding: 14px 50px 14px 50px;
+            padding: 14px 75px 14px 50px;
             font-size: 16px;
             border: 1px solid #dfe1e5;
             border-radius: 24px;
@@ -141,6 +141,23 @@
         .search-icon:hover { color: #4285F4; }
         body.dark-mode .search-icon { color: #9aa0a6; }
         body.dark-mode .search-icon:hover { color: #8ab4f8; }
+
+        .clear-btn {
+            position: absolute;
+            right: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #9aa0a6;
+            outline: none;
+            display: none;
+        }
+        .clear-btn:hover { color: #EA4335; }
+        body.dark-mode .clear-btn { color: #9aa0a6; }
+        body.dark-mode .clear-btn:hover { color: #EA4335; }
 
         .voice-btn {
             position: absolute;
@@ -480,7 +497,8 @@
 
     <div class="search-box">
         <span class="search-icon" onclick="triggerDefaultSearch()" title="Tìm kiếm">🔍</span>
-        <input type="text" id="searchInput" class="search-input" placeholder="Nhập từ khóa hoặc chọn nền tảng bên dưới..." autofocus>
+        <input type="text" id="searchInput" class="search-input" placeholder="Nhập từ khóa hoặc chọn nền tảng bên dưới..." autofocus oninput="handleInputChange()">
+        <button type="button" id="clearBtn" class="clear-btn" onclick="clearSearchInput()" title="Xóa từ khóa">×</button>
         <button type="button" id="voiceBtn" class="voice-btn" onclick="toggleVoiceSearch()" title="Tìm kiếm bằng giọng nói">🎤</button>
     </div>
 
@@ -536,6 +554,7 @@
             renderSearchButtons();
             renderDefaultEngineSelect();
             renderSettingsEnginesList();
+            handleInputChange();
         });
 
         function handleBgUpload(event) {
@@ -717,6 +736,23 @@
             }
         }
 
+        function handleInputChange() {
+            const input = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearBtn');
+            if (input.value.trim().length > 0) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        }
+
+        function clearSearchInput() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            document.getElementById('clearBtn').style.display = 'none';
+            input.focus();
+        }
+
         // Tính năng Voice Search tự động ngắt câu và tìm kiếm
         let recognition = null;
         let isListening = false;
@@ -757,6 +793,7 @@
                     const currentText = finalTranscript || interimTranscript;
                     document.getElementById('voiceTranscript').textContent = currentText;
                     document.getElementById('searchInput').value = currentText;
+                    handleInputChange();
 
                     if (finalTranscript && !hasSearched) {
                         hasSearched = true;
@@ -854,6 +891,7 @@
                 textSpan.textContent = item;
                 textSpan.onclick = () => {
                     document.getElementById('searchInput').value = item;
+                    handleInputChange();
                     const defaultEng = localStorage.getItem('defaultEngine') || 'google';
                     performSearch(defaultEng);
                 };
