@@ -40,7 +40,75 @@
             width: 100%;
             max-width: 650px;
             position: relative;
-            margin-bottom: 25px;
+            margin-bottom: 10px;
+        }
+
+        /* Style cho lịch sử tìm kiếm */
+        .history-container {
+            width: 100%;
+            max-width: 650px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+        .history-item {
+            background-color: #f1f3f4;
+            color: #5f6368;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #dadce0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .history-item:hover { background-color: #e8eaed; }
+        body.dark-mode .history-item { background-color: #303134; color: #e8eaed; border-color: #5f6368; }
+        body.dark-mode .history-item:hover { background-color: #3c4043; }
+
+        .history-close {
+            font-size: 14px;
+            color: #9aa0a6;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .history-close:hover {
+            color: #ffffff;
+            background-color: #EA4335;
+        }
+
+        .history-clear {
+            background-color: transparent;
+            border: 1px solid #dadce0;
+            color: #5f6368;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .history-clear:hover {
+            background-color: #f1f3f4;
+            color: #EA4335;
+            border-color: #EA4335;
+        }
+        body.dark-mode .history-clear {
+            background-color: #303134;
+            color: #e8eaed;
+            border-color: #5f6368;
+        }
+        body.dark-mode .history-clear:hover {
+            background-color: #3c4043;
+            color: #EA4335;
+            border-color: #EA4335;
         }
 
         .search-input {
@@ -94,7 +162,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,.1);
         }
 
-        /* Màu sắc nhận diện cho từng nút */
         .btn-google { color: #1a0dab; border-color: #4285F4; }
         .btn-bing { color: #0078d4; border-color: #0078d4; }
         .btn-coccoc { color: #008f5d; border-color: #008f5d; }
@@ -104,8 +171,9 @@
         .btn-youtube { color: #ff0000; border-color: #ff0000; }
         .btn-tiktok { color: #010101; border-color: #010101; }
         .btn-facebook { color: #1877f2; border-color: #1877f2; }
+        .btn-gemini { color: #4285F4; border-color: #4285F4; }
+        .btn-chatgpt { color: #10a37f; border-color: #10a37f; }
 
-        /* Nút chuyển đổi Dark Mode góc trên bên phải */
         .theme-toggle {
             position: absolute;
             top: 20px;
@@ -130,7 +198,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,.1);
         }
 
-        /* Giao diện Dark Mode khi bật thủ công */
         body.dark-mode {
             background-color: #202124;
             color: #e8eaed;
@@ -162,7 +229,6 @@
             background-color: #3c4043;
         }
 
-        /* Giao diện Đăng nhập / Đăng ký */
         .auth-overlay {
             position: fixed;
             top: 0;
@@ -319,13 +385,11 @@
 </head>
 <body>
 
-    <!-- Thông tin người dùng đăng nhập ở góc trên bên trái -->
     <div id="userInfo" class="user-info" style="display: none;">
         <span>Chào, <strong id="currentUsername"></strong></span>
         <button class="logout-btn" onclick="logout()">Đăng xuất</button>
     </div>
 
-    <!-- Hộp thoại Đăng nhập / Đăng ký -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-card">
             <h2>Đăng Nhập / Đăng Ký</h2>
@@ -345,21 +409,20 @@
         </div>
     </div>
 
-    <!-- Nút bật/tắt Dark Mode -->
     <button id="themeToggleBtn" class="theme-toggle" onclick="toggleTheme()" title="Chuyển đổi giao diện Sáng/Tối">🌙</button>
 
-    <!-- Logo trang web -->
     <div class="logo">
         <span style="color:#4285F4;">M</span><span style="color:#EA4335;">u</span><span style="color:#FBBC05;">l</span><span style="color:#4285F4;">t</span><span style="color:#34A853;">i</span><span style="color:#EA4335;">S</span><span style="color:#4285F4;">e</span><span style="color:#34A853;">a</span><span style="color:#EA4335;">r</span><span style="color:#4285F4;">h</span>
     </div>
 
-    <!-- Thanh nhập từ khóa -->
     <div class="search-box">
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" class="search-input" placeholder="Nhập từ khóa hoặc chọn nền tảng bên dưới..." autofocus>
     </div>
 
-    <!-- Các nút lựa chọn công cụ và nền tảng -->
+    <!-- Vùng hiển thị lịch sử -->
+    <div id="historyContainer" class="history-container"></div>
+
     <div class="search-buttons">
         <button class="btn btn-google" onclick="performSearch('google')">Google</button>
         <button class="btn btn-bing" onclick="performSearch('bing')">Bing</button>
@@ -370,10 +433,11 @@
         <button class="btn btn-youtube" onclick="performSearch('youtube')">YouTube</button>
         <button class="btn btn-tiktok" onclick="performSearch('tiktok')">TikTok</button>
         <button class="btn btn-facebook" onclick="performSearch('facebook')">Facebook</button>
+        <button class="btn btn-gemini" onclick="performSearch('gemini')">Gemini</button>
+        <button class="btn btn-chatgpt" onclick="performSearch('chatgpt')">ChatGPT</button>
     </div>
 
     <script>
-        // Kiểm tra trạng thái đăng nhập khi tải trang
         window.addEventListener('DOMContentLoaded', () => {
             const loggedUser = localStorage.getItem('currentUser');
             if (loggedUser) {
@@ -387,9 +451,74 @@
                 document.body.classList.add('dark-mode');
                 document.getElementById('themeToggleBtn').textContent = '☀️';
             }
+            
+            renderHistory();
         });
 
-        // Hàm bật/tắt hiển thị mật khẩu
+        function saveToHistory(query) {
+            if (!query.trim()) return;
+            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            history = history.filter(item => item !== query);
+            history.unshift(query);
+            if (history.length > 5) history.pop();
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function removeHistoryItem(query) {
+            let history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            history = history.filter(item => item !== query);
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function clearAllHistory() {
+            localStorage.removeItem('searchHistory');
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const historyContainer = document.getElementById('historyContainer');
+            const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            historyContainer.innerHTML = '';
+            
+            if (history.length === 0) return;
+
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                
+                const textSpan = document.createElement('span');
+                textSpan.textContent = item;
+                textSpan.onclick = () => {
+                    document.getElementById('searchInput').value = item;
+                    performSearch('google');
+                };
+                
+                const closeBtn = document.createElement('span');
+                closeBtn.className = 'history-close';
+                closeBtn.textContent = '×';
+                closeBtn.title = 'Xóa mục này';
+                closeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeHistoryItem(item);
+                };
+
+                div.appendChild(textSpan);
+                div.appendChild(closeBtn);
+                historyContainer.appendChild(div);
+            });
+
+            const clearAllBtn = document.createElement('button');
+            clearAllBtn.className = 'history-clear';
+            clearAllBtn.textContent = 'Xóa tất cả ×';
+            clearAllBtn.title = 'Xóa toàn bộ lịch sử';
+            clearAllBtn.onclick = () => {
+                clearAllHistory();
+            };
+            historyContainer.appendChild(clearAllBtn);
+        }
+
         function togglePasswordVisibility() {
             const passInput = document.getElementById('authPassword');
             const toggleBtn = document.getElementById('togglePassBtn');
@@ -402,7 +531,6 @@
             }
         }
 
-        // Đăng nhập bằng tài khoản khách
         function handleGuestLogin() {
             localStorage.setItem('currentUser', 'Khách');
             document.getElementById('authOverlay').style.display = 'none';
@@ -471,7 +599,6 @@
             document.getElementById('authOverlay').style.display = 'flex';
         }
 
-        // Hàm chuyển đổi bật/tắt Dark Mode và lưu trạng thái vào trình duyệt
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
@@ -483,6 +610,10 @@
             const query = document.getElementById('searchInput').value.trim();
             let targetUrl = '';
 
+            if (query !== "") {
+                saveToHistory(query);
+            }
+
             if (query === "") {
                 if (engine === 'google') targetUrl = 'https://www.google.com';
                 else if (engine === 'bing') targetUrl = 'https://www.bing.com';
@@ -493,6 +624,8 @@
                 else if (engine === 'youtube') targetUrl = 'https://www.youtube.com';
                 else if (engine === 'tiktok') targetUrl = 'https://www.tiktok.com';
                 else if (engine === 'facebook') targetUrl = 'https://www.facebook.com';
+                else if (engine === 'gemini') targetUrl = 'https://gemini.google.com';
+                else if (engine === 'chatgpt') targetUrl = 'https://chatgpt.com';
             } else {
                 const encodedQuery = encodeURIComponent(query);
                 if (engine === 'google') targetUrl = `https://www.google.com/search?q=${encodedQuery}`;
@@ -504,10 +637,11 @@
                 else if (engine === 'youtube') targetUrl = `https://www.youtube.com/results?search_query=${encodedQuery}`;
                 else if (engine === 'tiktok') targetUrl = `https://www.tiktok.com/search?q=${encodedQuery}`;
                 else if (engine === 'facebook') targetUrl = `https://www.facebook.com/search/top?q=${encodedQuery}`;
+                else if (engine === 'gemini') targetUrl = 'https://gemini.google.com';
+                else if (engine === 'chatgpt') targetUrl = 'https://chatgpt.com';
             }
 
             if (targetUrl) {
-                // Bảo mật: Thêm noopener, noreferrer
                 window.open(targetUrl, '_blank', 'noopener,noreferrer');
             }
         }
