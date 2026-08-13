@@ -891,32 +891,49 @@
             return { icon: '🌤️', text: 'Bình thường' };
         }
 
-        // --- TÍNH NĂNG GỢI Ý TỪ KHÓA TỨC THÌ (ĐÃ CẬP NHẬT DEBOUNCE) ---
+        // --- BỘ NHỚ ĐỆM CỤC BỘ & ƯU TIÊN LỊCH SỬ CHO GỢI Ý (TỐI ƯU TỐC ĐỘ) ---
+        const suggestionCache = new Map();
         let debounceTimer;
         let selectedSuggestionIndex = -1;
 
         function handleInputChange() {
             const input = document.getElementById('searchInput');
             const clearBtn = document.getElementById('clearBtn');
-            const query = input.value.trim();
+            const query = input.value.trim().toLowerCase();
 
             selectedSuggestionIndex = -1;
 
             if (query.length > 0) {
                 clearBtn.style.display = 'block';
                 clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => fetchSuggestions(query), 200);
+                
+                // Hiển thị ngay lập tức kết quả từ lịch sử tìm kiếm cá nhân (0ms)
+                showLocalHistorySuggestions(query);
+
+                // Giảm độ trễ xuống 150ms để phản hồi nhanh hơn
+                debounceTimer = setTimeout(() => fetchSuggestionsWithCache(query), 150);
             } else {
                 clearBtn.style.display = 'none';
                 hideSuggestions();
             }
         }
 
-        async function fetchSuggestions(query) {
-            if (!query) {
-                hideSuggestions();
+        function showLocalHistorySuggestions(query) {
+            const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            const matchedHistory = history.filter(item => item.toLowerCase().includes(query));
+            
+            if (matchedHistory.length > 0) {
+                renderSuggestions(matchedHistory);
+            }
+        }
+
+        async function fetchSuggestionsWithCache(query) {
+            if (suggestionCache.has(query)) {
+                const cachedData = suggestionCache.get(query);
+                mergeAndRenderSuggestions(query, cachedData);
                 return;
             }
+
             try {
                 const googleUrl = `https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(query)}`;
                 const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(googleUrl)}`;
@@ -927,14 +944,24 @@
                 if (data && data.contents) {
                     const parsedData = JSON.parse(data.contents);
                     if (parsedData[1] && parsedData[1].length > 0) {
-                        renderSuggestions(parsedData[1]);
-                    } else {
-                        hideSuggestions();
+                        suggestionCache.set(query, parsedData[1]);
+                        mergeAndRenderSuggestions(query, parsedData[1]);
                     }
-                } else {
-                    hideSuggestions();
                 }
             } catch (e) {
+                // Giữ nguyên lịch sử nếu lỗi mạng
+            }
+        }
+
+        function mergeAndRenderSuggestions(query, googleSuggestions) {
+            const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+            const matchedHistory = history.filter(item => item.toLowerCase().includes(query));
+            
+            const combined = [...new Set([...matchedHistory, ...googleSuggestions])];
+            
+            if (combined.length > 0) {
+                renderSuggestions(combined);
+            } else {
                 hideSuggestions();
             }
         }
@@ -944,7 +971,9 @@
             container.innerHTML = '';
             selectedSuggestionIndex = -1;
             
-            suggestions.forEach((item, index) => {
+            const limitedSuggestions = suggestions.slice(0, 8);
+
+            limitedSuggestions.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = 'suggestion-item';
                 div.textContent = item;
