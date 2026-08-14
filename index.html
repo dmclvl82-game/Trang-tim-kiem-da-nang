@@ -105,6 +105,7 @@
             user-select: none;
             z-index: 10;
             align-items: center;
+            cursor: move; /* Thêm con trỏ di chuyển để nhận biết có thể kéo thả */
         }
 
         body.dark-mode .top-widget-bar {
@@ -691,6 +692,7 @@
 
             initClockAndCalendar();
             initWeatherWidget();
+            initWidgetDraggable(); // Khởi tạo tính năng kéo thả widget thời gian/lịch/thời tiết
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.search-box')) {
@@ -698,6 +700,60 @@
                 }
             });
         });
+
+        // --- TÍNH NĂNG KÉO THẢ THANH WIDGET ---
+        function initWidgetDraggable() {
+            const widget = document.querySelector('.top-widget-bar');
+            if (!widget) return;
+
+            const savedPos = localStorage.getItem('widgetPos');
+            if (savedPos) {
+                try {
+                    const pos = JSON.parse(savedPos);
+                    widget.style.top = pos.top + 'px';
+                    widget.style.left = pos.left + 'px';
+                    widget.style.position = 'fixed';
+                } catch(e) {}
+            }
+
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+
+            widget.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                const rect = widget.getBoundingClientRect();
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                
+                widget.style.cursor = 'grabbing';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                let newLeft = initialLeft + dx;
+                let newTop = initialTop + dy;
+
+                widget.style.left = newLeft + 'px';
+                widget.style.top = newTop + 'px';
+                widget.style.position = 'fixed';
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    widget.style.cursor = 'move';
+                    const rect = widget.getBoundingClientRect();
+                    localStorage.setItem('widgetPos', JSON.stringify({ top: rect.top, left: rect.left }));
+                }
+            });
+        }
 
         // --- TÍNH NĂNG TRANG CON GHI CHÚ THEO TÀI KHOẢN ---
         function getNotesStorageKey() {
@@ -907,10 +963,7 @@
                 clearBtn.style.display = 'block';
                 clearTimeout(debounceTimer);
                 
-                // Hiển thị ngay lập tức kết quả từ lịch sử tìm kiếm cá nhân (0ms)
                 showLocalHistorySuggestions(query);
-
-                // Giảm độ trễ xuống 150ms để phản hồi nhanh hơn
                 debounceTimer = setTimeout(() => fetchSuggestionsWithCache(query), 150);
             } else {
                 clearBtn.style.display = 'none';
@@ -948,9 +1001,7 @@
                         mergeAndRenderSuggestions(query, parsedData[1]);
                     }
                 }
-            } catch (e) {
-                // Giữ nguyên lịch sử nếu lỗi mạng
-            }
+            } catch (e) {}
         }
 
         function mergeAndRenderSuggestions(query, googleSuggestions) {
@@ -1260,7 +1311,6 @@
                 };
 
                 recognition.onerror = (event) => {
-                    console.error('Lỗi nhận diện giọng nói:', event.error);
                     document.getElementById('voiceOverlay').style.display = 'none';
                     isListening = false;
                 };
