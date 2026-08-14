@@ -6,6 +6,8 @@
     <title>UniSearchVN - Tìm Kiếm Đa Năng</title>
     <!-- Thêm thư viện SortableJS cho tính năng Kéo thả -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <!-- Thêm thư viện YouTube IFrame Player API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -604,6 +606,17 @@
         </div>
     </div>
 
+    <!-- Khung Video đã được thu nhỏ gọn gàng -->
+    <div id="videoContainer" style="display: flex; justify-content: center; margin-bottom: 10px; position: relative; width: 180px; height: 101px; margin-left: auto; margin-right: auto; overflow: hidden; border-radius: 8px;">
+        <div id="player" style="position: absolute; top: -48px; left: -85px; width: 350px; height: 197px; pointer-events: none;"></div>
+        <!-- Lớp mặt nạ che hoàn toàn YouTube iframe khi đang tải -->
+        <div id="videoMask" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 95; transition: opacity 0.5s ease; opacity: 1;"></div>
+        <!-- Lớp phủ trong suốt chặn mọi cú click chuột -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 90; background: transparent;"></div>
+        <!-- Nút bật/tắt âm thanh -->
+        <button id="muteToggle" onclick="toggleMute()" style="position: absolute; bottom: 3px; right: 3px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 3px; padding: 1px 4px; cursor: pointer; z-index: 99; font-size: 10px;">🔇</button>
+    </div>
+
     <div class="logo">
         <span style="color:#4285F4;">U</span><span style="color:#EA4335;">n</span><span style="color:#FBBC05;">i</span><span style="color:#4285F4;">S</span><span style="color:#34A853;">e</span><span style="color:#EA4335;">a</span><span style="color:#4285F4;">r</span><span style="color:#34A853;">c</span><span style="color:#EA4335;">h</span><span style="color:#4285F4;">V</span><span style="color:#34A853;">N</span>
     </div>
@@ -641,6 +654,57 @@
     </div>
 
     <script>
+        // --- XỬ LÝ YOUTUBE API PLAYER ---
+        let player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '197',
+                width: '350',
+                videoId: 'jIQ6UV2onyI',
+                playerVars: {
+                    'autoplay': 1,
+                    'loop': 1,
+                    'playlist': 'jIQ6UV2onyI',
+                    'controls': 0,
+                    'disablekb': 1,
+                    'modestbranding': 1,
+                    'showinfo': 0,
+                    'rel': 0,
+                    'mute': 1
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+            // Đợi một nhịp ngắn (0.6 giây) để YouTube ổn định hoàn toàn rồi mới mờ dần lớp mặt nạ che
+            setTimeout(() => {
+                const mask = document.getElementById('videoMask');
+                if (mask) {
+                    mask.style.opacity = '0';
+                    setTimeout(() => {
+                        mask.style.display = 'none';
+                    }, 500);
+                }
+            }, 600);
+        }
+
+        function toggleMute() {
+            const btn = document.getElementById('muteToggle');
+            if (player && typeof player.isMuted === 'function') {
+                if (player.isMuted()) {
+                    player.unMute();
+                    btn.textContent = '🔊';
+                } else {
+                    player.mute();
+                    btn.textContent = '🔇';
+                }
+            }
+        }
+
         const defaultEngines = [
             { id: 'google', name: 'Google', color: '#1a0dab', borderColor: '#4285F4', type: 'builtin', url: 'https://www.google.com/search?q=' },
             { id: 'bing', name: 'Bing', color: '#0078d4', borderColor: '#0078d4', type: 'builtin', url: 'https://www.bing.com/search?q=' },
@@ -677,6 +741,7 @@
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-mode');
                 document.getElementById('themeToggleBtn').textContent = '☀️';
+                document.getElementById('videoMask').style.backgroundColor = '#202124';
             }
 
             const savedBg = localStorage.getItem('bgImage');
@@ -766,6 +831,7 @@
 
         function openNotesWorkspace() {
             document.querySelector('.logo').style.display = 'none';
+            document.getElementById('videoContainer').style.display = 'none';
             document.querySelector('.search-box').style.display = 'none';
             document.getElementById('historyContainer').style.display = 'none';
             document.getElementById('searchButtonsContainer').style.display = 'none';
@@ -776,6 +842,7 @@
 
         function closeNotesWorkspace() {
             document.querySelector('.logo').style.display = 'block';
+            document.getElementById('videoContainer').style.display = 'flex';
             document.querySelector('.search-box').style.display = 'block';
             document.getElementById('historyContainer').style.display = 'flex';
             document.getElementById('searchButtonsContainer').style.display = 'flex';
@@ -1499,6 +1566,7 @@
             const isDark = document.body.classList.contains('dark-mode');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             document.getElementById('themeToggleBtn').textContent = isDark ? '☀️' : '🌙';
+            document.getElementById('videoMask').style.backgroundColor = isDark ? '#202124' : '#ffffff';
         }
 
         function performSearch(engineId) {
@@ -1566,4 +1634,3 @@
 
 </body>
 </html>
-
