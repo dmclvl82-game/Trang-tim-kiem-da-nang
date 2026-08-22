@@ -109,18 +109,26 @@
     <!-- Các nút công cụ tìm kiếm -->
     <div class="search-buttons" id="searchButtonsContainer"></div>
 
-    <!-- Workspace Ghi chú -->
+    <!-- Workspace Ghi chú & Checklist -->
     <div id="notesWorkspace">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #dadce0; padding-bottom: 12px;">
-            <h2 style="font-size: 20px;">📝 Ghi chú cá nhân</h2>
+            <h2 style="font-size: 20px;">📝 Ghi chú & Checklist</h2>
             <button class="btn" onclick="closeNotesWorkspace()" style="padding: 6px 14px; font-size: 13px;">← Quay lại</button>
         </div>
         <div style="margin-bottom: 20px;">
             <input type="text" id="wsNoteTitle" class="auth-input" placeholder="Tiêu đề..." style="margin-bottom: 8px;">
-            <textarea id="wsNoteContent" class="auth-input" placeholder="Nội dung ghi chú..." style="margin-bottom: 10px; height: 100px; resize: vertical;"></textarea>
+            <textarea id="wsNoteContent" class="auth-input" placeholder="Nội dung ghi chú (tùy chọn)..." style="margin-bottom: 10px; height: 60px; resize: vertical;"></textarea>
+            
+            <!-- Khu vực thêm mục Checklist -->
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="wsNewItemInput" class="auth-input" placeholder="Thêm việc cần làm (nhấn Enter)..." style="margin-bottom: 0;" onkeydown="if(event.key==='Enter'){addDraftChecklistItem();}">
+                <button class="btn" style="white-space: nowrap;" onclick="addDraftChecklistItem()">+ Thêm mục</button>
+            </div>
+            <div id="wsDraftItemsContainer" style="margin-bottom: 10px; max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+
             <button class="btn btn-login" style="width: 100%; padding: 10px; border-radius: 8px;" onclick="saveWorkspaceNote()">Lưu Ghi Chú</button>
         </div>
-        <div id="wsNotesListContainer" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+        <div id="wsNotesListContainer" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
     <!-- Workspace Camera -->
