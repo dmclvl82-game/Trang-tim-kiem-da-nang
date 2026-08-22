@@ -89,9 +89,9 @@
         </div>
     </div>
 
-    <!-- Logo chính -->
+    <!-- Logo chính mang phong cách Bản Sắc Đương Đại -->
     <div class="logo">
-        <span style="color:#4285F4;">U</span><span style="color:#EA4335;">n</span><span style="color:#FBBC05;">i</span><span style="color:#4285F4;">S</span><span style="color:#34A853;">e</span><span style="color:#EA4335;">a</span><span style="color:#4285F4;">r</span><span style="color:#34A853;">c</span><span style="color:#EA4335;">h</span><span style="color:#4285F4;">V</span><span style="color:#34A853;">N</span>
+        <span class="logo-uni">UniSearch</span><span class="logo-vietnam">VN</span>
     </div>
 
     <!-- Hộp tìm kiếm -->
@@ -118,14 +118,12 @@
         <div style="margin-bottom: 20px;">
             <input type="text" id="wsNoteTitle" class="auth-input" placeholder="Tiêu đề ghi chú..." style="margin-bottom: 10px;">
             
-            <!-- Khu vực thêm mục Checklist trực quan -->
             <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px;">Thêm việc cần làm:</label>
             <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                 <input type="text" id="wsNewItemInput" class="auth-input" placeholder="Nhập việc cần làm rồi nhấn Thêm..." style="margin-bottom: 0;" onkeydown="if(event.key==='Enter'){addDraftChecklistItem();}">
                 <button class="btn btn-login" style="white-space: nowrap; padding: 0 16px;" onclick="addDraftChecklistItem()">+ Thêm</button>
             </div>
             
-            <!-- Danh sách nháp hiển thị rõ ràng -->
             <div id="wsDraftItemsContainer" style="margin-bottom: 15px; max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
 
             <button class="btn btn-login" style="width: 100%; padding: 12px; border-radius: 8px; font-weight: bold;" onclick="saveWorkspaceNote()">💾 Lưu Toàn Bộ Ghi Chú</button>

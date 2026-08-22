@@ -11,19 +11,52 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #ffffff;
+    background-color: #faf9f6; /* Nền trắng ngà ấm áp, sang trọng */
     padding: 20px;
     transition: background-color 0.3s ease;
     position: relative;
 }
 
+/* Phần Logo mang phong cách Bản Sắc Đương Đại kết hợp hiệu ứng phát sáng */
 .logo {
     font-size: 3.5rem;
-    font-weight: bold;
+    font-weight: 800;
     margin-bottom: 30px;
-    letter-spacing: -2px;
     text-align: center;
     user-select: none;
+    letter-spacing: -1.5px;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+}
+
+/* Xanh Ngọc Bích (Celadon) thanh nhã cho UniSearch + Hiệu ứng phát sáng */
+.logo-uni {
+    background: linear-gradient(135deg, #1b4d3e 0%, #2e7d62 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px rgba(46, 125, 98, 0.35));
+}
+
+/* Hồng Sen (Lotus Pink) độc đáo, nổi bật cho VN + Hiệu ứng phát sáng */
+.logo-vietnam {
+    display: inline-block;
+    background: linear-gradient(135deg, #d90429 0%, #ff4d6d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-left: 4px;
+    position: relative;
+    filter: drop-shadow(0 0 12px rgba(255, 77, 109, 0.4));
+}
+
+/* Điểm nhấn chấm tròn tối giản tượng trưng cho nhụy sen */
+.logo-vietnam::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: -12px;
+    width: 8px;
+    height: 8px;
+    background-color: #ff4d6d;
+    border-radius: 50%;
 }
 
 @media (max-width: 600px) {
@@ -211,7 +244,7 @@ body.dark-mode .history-clear:hover {
     cursor: pointer;
     z-index: 2;
 }
-.search-icon:hover { color: #4285F4; }
+.search-icon:hover { color: #2e7d62; }
 
 .clear-btn {
     position: absolute;
@@ -240,7 +273,7 @@ body.dark-mode .history-clear:hover {
     color: #9aa0a6;
     z-index: 2;
 }
-.voice-btn:hover { color: #4285F4; }
+.voice-btn:hover { color: #2e7d62; }
 
 .search-buttons {
     display: flex;
@@ -350,7 +383,7 @@ body.dark-mode .auth-input { background-color: #202124; color: #fff; border-colo
 
 .auth-buttons { display: flex; gap: 10px; justify-content: space-between; margin-bottom: 10px; }
 .auth-btn { flex: 1; padding: 10px; border: 1px solid #dadce0; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
-.btn-login { background-color: #1a0dab; color: #fff; border-color: #1a0dab; }
+.btn-login { background-color: #2e7d62; color: #fff; border-color: #2e7d62; }
 .btn-register { background-color: #f8f9fa; color: #3c4043; }
 body.dark-mode .btn-register { background-color: #202124; color: #e8eaed; border-color: #5f6368; }
 .btn-guest { width: 100%; background-color: #f8f9fa; color: #3c4043; padding: 10px; border: 1px solid #dadce0; border-radius: 8px; cursor: pointer; font-weight: bold; }
@@ -381,8 +414,8 @@ body.dark-mode #notesWorkspace { background-color: #303134; border-color: #5f636
 body.dark-mode #cameraWorkspace { background-color: #303134; border-color: #5f6368; color: #e8eaed; }
 #cameraWorkspace video, #cameraWorkspace img { width: 100%; max-width: 420px; border-radius: 8px; background: #000; margin-bottom: 10px; }
 .cam-btn { border: none; padding: 10px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 8px; color: white; }
-.btn-capture { background-color: #007bff; }
-.btn-capture:hover { background-color: #0056b3; }
+.btn-capture { background-color: #2e7d62; }
+.btn-capture:hover { background-color: #1b4d3e; }
 .btn-record { background-color: #ffc107; color: #333; }
 .btn-record.recording { background-color: #dc3545; color: white; }
 .btn-switch { background-color: #6c757d; }
