@@ -1,0 +1,392 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #ffffff;
+    padding: 20px;
+    transition: background-color 0.3s ease;
+    position: relative;
+}
+
+.logo {
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin-bottom: 30px;
+    letter-spacing: -2px;
+    text-align: center;
+    user-select: none;
+}
+
+@media (max-width: 600px) {
+    .logo { font-size: 2.5rem; }
+}
+
+.search-box {
+    width: 100%;
+    max-width: 650px;
+    position: relative;
+    margin-bottom: 10px;
+}
+
+/* Gợi ý tìm kiếm */
+.suggestions-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #ffffff;
+    border: 1px solid #dfe1e5;
+    border-top: none;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 6px rgba(32,33,36,.15);
+    z-index: 999;
+    display: none;
+    overflow: hidden;
+    margin-top: -4px;
+}
+
+.suggestion-item {
+    padding: 10px 20px 10px 50px;
+    font-size: 15px;
+    color: #202124;
+    cursor: pointer;
+    text-align: left;
+}
+
+.suggestion-item:hover {
+    background-color: #f1f3f4;
+}
+
+body.dark-mode .suggestions-container {
+    background-color: #303134;
+    border-color: #5f6368;
+}
+
+body.dark-mode .suggestion-item {
+    color: #e8eaed;
+}
+
+body.dark-mode .suggestion-item:hover {
+    background-color: #3c4043;
+}
+
+/* Widget Đồng hồ & Thời tiết */
+.top-widget-bar {
+    position: absolute;
+    top: 20px;
+    left: 90px;
+    display: flex;
+    gap: 15px;
+    font-size: 13px;
+    color: #3c4043;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: 1px solid #dadce0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    user-select: none;
+    z-index: 10;
+    align-items: center;
+    cursor: move;
+    touch-action: none;
+}
+
+body.dark-mode .top-widget-bar {
+    background-color: rgba(48, 49, 52, 0.9);
+    color: #e8eaed;
+    border-color: #5f6368;
+}
+
+@media (max-width: 900px) {
+    .top-widget-bar {
+        position: static;
+        margin-bottom: 20px;
+        flex-direction: column;
+        gap: 4px;
+        text-align: center;
+    }
+}
+
+/* Lịch sử tìm kiếm */
+.history-container {
+    width: 100%;
+    max-width: 650px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+}
+.history-item {
+    background-color: #f1f3f4;
+    color: #5f6368;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid #dadce0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.history-item:hover { background-color: #e8eaed; }
+body.dark-mode .history-item { background-color: #303134; color: #e8eaed; border-color: #5f6368; }
+body.dark-mode .history-item:hover { background-color: #3c4043; }
+
+.history-close {
+    font-size: 14px;
+    color: #9aa0a6;
+    font-weight: bold;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.history-close:hover {
+    color: #ffffff;
+    background-color: #EA4335;
+}
+
+.history-clear {
+    background-color: transparent;
+    border: 1px solid #dadce0;
+    color: #5f6368;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.history-clear:hover {
+    background-color: #f1f3f4;
+    color: #EA4335;
+    border-color: #EA4335;
+}
+body.dark-mode .history-clear {
+    background-color: #303134;
+    color: #e8eaed;
+    border-color: #5f6368;
+}
+body.dark-mode .history-clear:hover {
+    background-color: #3c4043;
+    color: #EA4335;
+    border-color: #EA4335;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 75px 14px 50px;
+    font-size: 16px;
+    border: 1px solid #dfe1e5;
+    border-radius: 24px;
+    outline: none;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+}
+
+.search-input:hover, .search-input:focus {
+    box-shadow: 0 1px 6px rgba(32,33,36,.28);
+    border-color: rgba(223,225,229,0);
+}
+
+.search-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa0a6;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 2;
+}
+.search-icon:hover { color: #4285F4; }
+
+.clear-btn {
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #9aa0a6;
+    display: none;
+    z-index: 2;
+}
+.clear-btn:hover { color: #EA4335; }
+
+.voice-btn {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #9aa0a6;
+    z-index: 2;
+}
+.voice-btn:hover { color: #4285F4; }
+
+.search-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 850px;
+}
+
+.btn {
+    background-color: #f8f9fa;
+    border: 1px solid #dadce0;
+    border-radius: 20px;
+    color: #3c4043;
+    font-size: 14px;
+    padding: 10px 20px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.btn:hover {
+    background-color: #f1f3f4;
+    border-color: #bcc1c6;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #dadce0;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.theme-toggle:hover { background-color: #f1f3f4; }
+
+body.dark-mode {
+    background-color: #202124;
+    color: #e8eaed;
+}
+
+body.dark-mode .search-input {
+    background-color: #303134;
+    color: #ffffff;
+    border-color: #5f6368;
+}
+
+body.dark-mode .btn {
+    background-color: #303134;
+    color: #e8eaed;
+    border-color: #5f6368;
+}
+
+body.dark-mode .btn:hover { background-color: #3c4043; }
+
+body.dark-mode .theme-toggle {
+    background-color: #303134;
+    border-color: #5f6368;
+    color: #ffffff;
+}
+
+/* Giao diện Đăng nhập / Đăng ký */
+.auth-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.auth-card {
+    background: #ffffff; padding: 30px; border-radius: 12px;
+    width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+body.dark-mode .auth-card { background: #303134; color: #e8eaed; }
+
+.auth-card h2 { margin-bottom: 20px; font-size: 24px; }
+
+.auth-input {
+    width: 100%; padding: 12px; border: 1px solid #dfe1e5;
+    border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 15px;
+}
+
+body.dark-mode .auth-input { background-color: #202124; color: #fff; border-color: #5f6368; }
+
+.password-container { position: relative; width: 100%; }
+.password-container .auth-input { padding-right: 40px; margin-bottom: 15px; }
+
+.toggle-password {
+    position: absolute; right: 12px; top: 40%;
+    transform: translateY(-50%); background: none; border: none;
+    cursor: pointer; font-size: 16px; color: #9aa0a6;
+}
+
+.auth-buttons { display: flex; gap: 10px; justify-content: space-between; margin-bottom: 10px; }
+.auth-btn { flex: 1; padding: 10px; border: 1px solid #dadce0; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
+.btn-login { background-color: #1a0dab; color: #fff; border-color: #1a0dab; }
+.btn-register { background-color: #f8f9fa; color: #3c4043; }
+body.dark-mode .btn-register { background-color: #202124; color: #e8eaed; border-color: #5f6368; }
+.btn-guest { width: 100%; background-color: #f8f9fa; color: #3c4043; padding: 10px; border: 1px solid #dadce0; border-radius: 8px; cursor: pointer; font-weight: bold; }
+body.dark-mode .btn-guest { background-color: #202124; color: #e8eaed; border-color: #5f6368; }
+
+.auth-error { color: #EA4335; font-size: 13px; margin-bottom: 15px; display: none; }
+
+.user-info {
+    position: absolute; top: 20px; left: 20px; font-size: 14px;
+    display: flex; align-items: center; gap: 10px; z-index: 10;
+}
+.logout-btn { background: none; border: none; color: #EA4335; cursor: pointer; font-size: 14px; font-weight: bold; }
+
+/* Workspace Ghi chú */
+#notesWorkspace {
+    display: none; width: 100%; max-width: 700px; background: #ffffff;
+    border: 1px solid #dfe1e5; border-radius: 20px; padding: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; text-align: left;
+}
+body.dark-mode #notesWorkspace { background-color: #303134; border-color: #5f6368; color: #e8eaed; }
+
+/* Workspace Camera */
+#cameraWorkspace {
+    display: none; width: 100%; max-width: 480px; background: #ffffff;
+    border: 1px solid #dfe1e5; border-radius: 20px; padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); margin-bottom: 20px; text-align: center;
+}
+body.dark-mode #cameraWorkspace { background-color: #303134; border-color: #5f6368; color: #e8eaed; }
+#cameraWorkspace video, #cameraWorkspace img { width: 100%; max-width: 420px; border-radius: 8px; background: #000; margin-bottom: 10px; }
+.cam-btn { border: none; padding: 10px 15px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 8px; color: white; }
+.btn-capture { background-color: #007bff; }
+.btn-capture:hover { background-color: #0056b3; }
+.btn-record { background-color: #ffc107; color: #333; }
+.btn-record.recording { background-color: #dc3545; color: white; }
+.btn-switch { background-color: #6c757d; }
+.btn-close-cam { background-color: #EA4335; margin-top: 15px; }
+.cam-select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 8px; background: #fff; }
+body.dark-mode .cam-select { background: #202124; color: #fff; border-color: #5f6368; }
+#camCanvas { display: none; }
