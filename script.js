@@ -97,7 +97,9 @@ function initWidgetDraggable() {
     });
 }
 
-// --- Workspace Ghi chú ---
+// --- Workspace Ghi chú & Checklist ---
+let draftChecklistItems = [];
+
 function getNotesStorageKey() {
     return 'userNotes_' + (localStorage.getItem('currentUser') || 'Khách');
 }
@@ -105,6 +107,8 @@ function getNotesStorageKey() {
 function openNotesWorkspace() {
     toggleMainElements(false);
     document.getElementById('notesWorkspace').style.display = 'block';
+    draftChecklistItems = [];
+    renderDraftChecklist();
     renderWorkspaceNotesList();
 }
 
@@ -113,16 +117,57 @@ function closeNotesWorkspace() {
     document.getElementById('notesWorkspace').style.display = 'none';
 }
 
+function addDraftChecklistItem() {
+    const input = document.getElementById('wsNewItemInput');
+    const val = input.value.trim();
+    if (!val) return;
+    draftChecklistItems.push({ text: val, checked: false });
+    input.value = '';
+    renderDraftChecklist();
+}
+
+function removeDraftChecklistItem(index) {
+    draftChecklistItems.splice(index, 1);
+    renderDraftChecklist();
+}
+
+function renderDraftChecklist() {
+    const container = document.getElementById('wsDraftItemsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    draftChecklistItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.02); border-radius: 4px; font-size: 13px; border: 1px dashed #dadce0;';
+        div.innerHTML = `<span>☑️ ${escapeHtml(item.text)}</span><button onclick="removeDraftChecklistItem(${index})" style="background:none; border:none; color:#EA4335; cursor:pointer; font-weight:bold;">✕</button>`;
+        container.appendChild(div);
+    });
+}
+
 function saveWorkspaceNote() {
     const titleInput = document.getElementById('wsNoteTitle');
     const contentInput = document.getElementById('wsNoteContent');
-    const title = titleInput.value.trim(), content = contentInput.value.trim();
-    if (!title && !content) { alert('Vui lòng nhập tiêu đề hoặc nội dung ghi chú!'); return; }
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    
+    if (!title && !content && draftChecklistItems.length === 0) { 
+        alert('Vui lòng nhập tiêu đề, nội dung hoặc ít nhất một mục checklist!'); 
+        return; 
+    }
     
     let notes = JSON.parse(localStorage.getItem(getNotesStorageKey()) || '[]');
-    notes.unshift({ id: 'note_' + Date.now(), title: title || 'Không tiêu đề', content, date: new Date().toLocaleString('vi-VN') });
+    notes.unshift({ 
+        id: 'note_' + Date.now(), 
+        title: title || 'Không tiêu đề', 
+        content: content,
+        items: [...draftChecklistItems], 
+        date: new Date().toLocaleString('vi-VN') 
+    });
     localStorage.setItem(getNotesStorageKey(), JSON.stringify(notes));
-    titleInput.value = ''; contentInput.value = '';
+    
+    titleInput.value = ''; 
+    contentInput.value = '';
+    draftChecklistItems = [];
+    renderDraftChecklist();
     renderWorkspaceNotesList();
 }
 
@@ -133,15 +178,50 @@ function deleteWorkspaceNote(id) {
     renderWorkspaceNotesList();
 }
 
+function toggleChecklistItem(noteId, itemIndex) {
+    let notes = JSON.parse(localStorage.getItem(getNotesStorageKey()) || '[]');
+    const note = notes.find(n => n.id === noteId);
+    if (note && note.items && note.items[itemIndex]) {
+        note.items[itemIndex].checked = !note.items[itemIndex].checked;
+        localStorage.setItem(getNotesStorageKey(), JSON.stringify(notes));
+        renderWorkspaceNotesList();
+    }
+}
+
 function renderWorkspaceNotesList() {
     const container = document.getElementById('wsNotesListContainer');
     if (!container) return;
     const notes = JSON.parse(localStorage.getItem(getNotesStorageKey()) || '[]');
     container.innerHTML = notes.length === 0 ? '<span style="font-size: 13px; color: #9aa0a6;">Chưa có ghi chú nào.</span>' : '';
+    
     notes.forEach(note => {
         const item = document.createElement('div');
-        item.style.cssText = 'padding: 10px; background: rgba(0,0,0,0.03); border-radius: 8px; border: 1px solid #dadce0; font-size: 13px;';
-        item.innerHTML = `<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><strong style="color: #f59e0b;">${escapeHtml(note.title)}</strong><button onclick="deleteWorkspaceNote('${note.id}')" style="background:none; border:none; color:#EA4335; cursor:pointer; font-weight:bold;">✕</button></div><p style="white-space: pre-wrap; margin-bottom: 4px;">${escapeHtml(note.content)}</p><span style="font-size: 11px; color: #9aa0a6;">${note.date}</span>`;
+        item.style.cssText = 'padding: 12px; background: rgba(0,0,0,0.03); border-radius: 8px; border: 1px solid #dadce0; font-size: 13px;';
+        
+        let textHtml = note.content ? `<p style="white-space: pre-wrap; margin-bottom: 6px;">${escapeHtml(note.content)}</p>` : '';
+        
+        let itemsHtml = '';
+        if (note.items && note.items.length > 0) {
+            itemsHtml = '<div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px;">';
+            note.items.forEach((it, idx) => {
+                const styleLine = it.checked ? 'text-decoration: line-through; color: #9aa0a6;' : '';
+                itemsHtml += `<label style="display: flex; align-items: center; gap: 8px; cursor: pointer; ${styleLine}">
+                    <input type="checkbox" ${it.checked ? 'checked' : ''} onchange="toggleChecklistItem('${note.id}', ${idx})" style="cursor: pointer;">
+                    <span>${escapeHtml(it.text)}</span>
+                </label>`;
+            });
+            itemsHtml += '</div>';
+        }
+
+        item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <strong style="color: #f59e0b; font-size: 14px;">${escapeHtml(note.title)}</strong>
+                <button onclick="deleteWorkspaceNote('${note.id}')" style="background:none; border:none; color:#EA4335; cursor:pointer; font-weight:bold;">✕</button>
+            </div>
+            ${textHtml}
+            ${itemsHtml}
+            <span style="font-size: 11px; color: #9aa0a6;">${note.date}</span>
+        `;
         container.appendChild(item);
     });
 }
