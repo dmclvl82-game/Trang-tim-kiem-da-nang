@@ -438,6 +438,23 @@ function handleBgUpload(e) {
     r.onload = ev => { localStorage.setItem('bgImage', ev.target.result); applyBackgroundImage(ev.target.result); };
     r.readAsDataURL(f);
 }
+
+// Xử lý áp dụng hình nền từ đường dẫn URL
+function handleBgUrlApply() {
+    const input = document.getElementById('bgUrlInput');
+    const url = input.value.trim();
+    
+    if (!url) {
+        alert('Vui lòng nhập đường dẫn hình nền hợp lệ!');
+        input.focus();
+        return;
+    }
+    
+    localStorage.setItem('bgImage', url);
+    applyBackgroundImage(url);
+    input.value = '';
+}
+
 function applyBackgroundImage(url) {
     if (url) {
         document.body.style.backgroundImage = `url(${url})`;

@@ -62,8 +62,15 @@
             </div>
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;">Hình nền:</label>
-                <input type="file" id="bgImageInput" accept="image/*" class="auth-input" style="padding: 6px;" onchange="handleBgUpload(event)">
-                <button class="btn" style="margin-top: 4px; width: 100%;" onclick="removeBgImage()">Xóa hình nền</button>
+                <input type="file" id="bgImageInput" accept="image/*" class="auth-input" style="padding: 6px; margin-bottom: 8px;" onchange="handleBgUpload(event)">
+                
+                <!-- Nhập link ảnh trực tiếp -->
+                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                    <input type="text" id="bgUrlInput" class="auth-input" placeholder="Hoặc dán link ảnh (https://...)..." style="margin-bottom: 0;">
+                    <button class="btn btn-login" style="white-space: nowrap; padding: 0 14px;" onclick="handleBgUrlApply()">Áp dụng</button>
+                </div>
+
+                <button class="btn" style="width: 100%;" onclick="removeBgImage()">Xóa hình nền</button>
             </div>
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px;">Công cụ tìm kiếm mặc định (nhấn Enter):</label>
@@ -171,3 +178,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+    
