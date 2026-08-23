@@ -64,8 +64,10 @@ function initWidgetDraggable() {
     if (savedPos) {
         try {
             const pos = JSON.parse(savedPos);
-            widget.style.top = pos.top + 'px';
-            widget.style.left = pos.left + 'px';
+            const maxLeft = Math.max(0, window.innerWidth - widget.offsetWidth);
+            const maxTop = Math.max(0, window.innerHeight - widget.offsetHeight);
+            widget.style.top = Math.min(Math.max(0, pos.top), maxTop) + 'px';
+            widget.style.left = Math.min(Math.max(0, pos.left), maxLeft) + 'px';
             widget.style.position = 'fixed';
         } catch(e) {}
     }
@@ -92,7 +94,13 @@ function initWidgetDraggable() {
             widget.style.cursor = 'move';
             try { widget.releasePointerCapture(e.pointerId); } catch(err) {}
             const rect = widget.getBoundingClientRect();
-            localStorage.setItem('widgetPos', JSON.stringify({ top: rect.top, left: rect.left }));
+            const maxLeft = Math.max(0, window.innerWidth - rect.width);
+            const maxTop = Math.max(0, window.innerHeight - rect.height);
+            const clampedLeft = Math.min(Math.max(0, rect.left), maxLeft);
+            const clampedTop = Math.min(Math.max(0, rect.top), maxTop);
+            widget.style.left = clampedLeft + 'px';
+            widget.style.top = clampedTop + 'px';
+            localStorage.setItem('widgetPos', JSON.stringify({ top: clampedTop, left: clampedLeft }));
         }
     });
 }
@@ -355,7 +363,10 @@ async function fetchWeather(lat, lon) {
             const wEl = document.getElementById('weatherWidget');
             if (wEl) wEl.innerHTML = `🌤️ <b>${temp}°C</b>`;
         }
-    } catch(e) {}
+    } catch(e) {
+        const wEl = document.getElementById('weatherWidget');
+        if (wEl) wEl.textContent = '🌤️ Không có dữ liệu';
+    }
 }
 
 // --- Gợi ý từ khóa ---
@@ -402,6 +413,10 @@ async function fetchSuggestionsWithCache(query) {
 }
 
 function mergeAndRenderSuggestions(query, googleSugs) {
+    // Bỏ qua kết quả trả về trễ không còn khớp với nội dung đang gõ
+    const currentQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+    if (currentQuery !== query) return;
+
     const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
     const matched = history.filter(item => item.toLowerCase().includes(query));
     const combined = [...new Set([...matched, ...googleSugs])];
@@ -444,8 +459,8 @@ function handleBgUrlApply() {
     const input = document.getElementById('bgUrlInput');
     const url = input.value.trim();
     
-    if (!url) {
-        alert('Vui lòng nhập đường dẫn hình nền hợp lệ!');
+    if (!url || !isValidHttpUrl(url)) {
+        alert('Vui lòng nhập đường dẫn hình nền hợp lệ (bắt đầu bằng http:// hoặc https://)!');
         input.focus();
         return;
     }
@@ -484,6 +499,7 @@ function addSearchEngine() {
     const url = document.getElementById('customBtnUrl').value.trim();
     const color = document.getElementById('customBtnColor').value;
     if (!name || !url) { alert('Vui lòng nhập đầy đủ tên và đường dẫn!'); return; }
+    if (!isValidHttpUrl(url)) { alert('Đường dẫn không hợp lệ! Vui lòng nhập URL bắt đầu bằng http:// hoặc https://'); return; }
     let engines = getEngines();
     engines.push({ id: 'eng_' + Date.now(), name, color, borderColor: color, type: 'custom', url });
     localStorage.setItem('searchEngines', JSON.stringify(engines));
@@ -574,7 +590,13 @@ function closeVoiceSearch() { if (recognition) recognition.stop(); document.getE
 
 function triggerDefaultSearch() {
     hideSuggestions();
-    performSearch(localStorage.getItem('defaultEngine') || 'google');
+    const engines = getEngines();
+    let defaultId = localStorage.getItem('defaultEngine') || 'google';
+    // Nếu công cụ mặc định đã bị xóa khỏi danh sách, dùng công cụ đầu tiên còn lại thay thế
+    if (!engines.find(e => e.id === defaultId)) {
+        defaultId = engines.length > 0 ? engines[0].id : 'google';
+    }
+    performSearch(defaultId);
 }
 
 function performSearch(engineId) {
@@ -611,7 +633,7 @@ function renderHistory() {
     h.forEach(item => {
         const div = document.createElement('div');
         div.className = 'history-item';
-        div.innerHTML = `<span>${item}</span><span class="history-close">×</span>`;
+        div.innerHTML = `<span>${escapeHtml(item)}</span><span class="history-close">×</span>`;
         div.querySelector('span').onclick = () => { document.getElementById('searchInput').value = item; triggerDefaultSearch(); };
         div.querySelector('.history-close').onclick = e => { e.stopPropagation(); removeHistory(item); };
         container.appendChild(div);
@@ -639,18 +661,26 @@ function handleGuestLogin() {
     document.getElementById('userInfo').style.display = 'flex';
     document.getElementById('currentUsername').textContent = 'Khách';
 }
-function handleRegister() {
+// Băm mật khẩu bằng SHA-256 trước khi lưu (tránh lưu plaintext trong localStorage)
+async function hashPassword(password) {
+    const data = new TextEncoder().encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function handleRegister() {
     const u = document.getElementById('authUsername').value.trim(), p = document.getElementById('authPassword').value.trim(), err = document.getElementById('authError');
     if (!u || !p) { err.textContent = 'Nhập đầy đủ thông tin!'; err.style.display = 'block'; return; }
     let users = JSON.parse(localStorage.getItem('users') || '{}');
     if (users[u]) { err.textContent = 'Tên tài khoản đã tồn tại!'; err.style.display = 'block'; return; }
-    users[u] = p; localStorage.setItem('users', JSON.stringify(users)); localStorage.setItem('currentUser', u);
+    users[u] = await hashPassword(p); localStorage.setItem('users', JSON.stringify(users)); localStorage.setItem('currentUser', u);
     location.reload();
 }
-function handleLogin() {
+async function handleLogin() {
     const u = document.getElementById('authUsername').value.trim(), p = document.getElementById('authPassword').value.trim(), err = document.getElementById('authError');
     let users = JSON.parse(localStorage.getItem('users') || '{}');
-    if (!users[u] || users[u] !== p) { err.textContent = 'Sai tài khoản hoặc mật khẩu!'; err.style.display = 'block'; return; }
+    const hashed = await hashPassword(p);
+    if (!users[u] || users[u] !== hashed) { err.textContent = 'Sai tài khoản hoặc mật khẩu!'; err.style.display = 'block'; return; }
     localStorage.setItem('currentUser', u); location.reload();
 }
 function logout() { localStorage.removeItem('currentUser'); location.reload(); }
@@ -660,6 +690,14 @@ function toggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     document.getElementById('themeToggleBtn').textContent = isDark ? '☀️' : '🌙';
 }
+// Kiểm tra URL hợp lệ (chỉ chấp nhận http/https, chặn javascript: và các chuỗi không phải URL)
+function isValidHttpUrl(str) {
+    try {
+        const u = new URL(str);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch (e) { return false; }
+}
+
 function escapeHtml(str) {
     return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 }
