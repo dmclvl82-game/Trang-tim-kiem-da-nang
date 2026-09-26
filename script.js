@@ -34,7 +34,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
-        document.getElementById('themeToggleBtn').textContent = '☀️';
+        document.getElementById('themeToggleCheckbox').checked = true;
     }
 
     const savedBg = localStorage.getItem('bgImage');
@@ -52,7 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
     initWidgetDraggable();
 
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-box')) { hideSuggestions(); }
+        if (!e.target.closest('.searchbar')) { hideSuggestions(); }
     });
 });
 
@@ -330,7 +330,7 @@ function toggleCamRecord() {
 function toggleMainElements(show) {
     const val = show ? 'block' : 'none';
     document.querySelector('.logo').style.display = val;
-    document.querySelector('.search-box').style.display = val;
+    document.querySelector('.searchbar').style.display = val;
     document.getElementById('historyContainer').style.display = show ? 'flex' : 'none';
     document.getElementById('searchButtonsContainer').style.display = show ? 'flex' : 'none';
     document.getElementById('notesWorkspace').style.display = 'none';
@@ -685,10 +685,14 @@ async function handleLogin() {
 }
 function logout() { localStorage.removeItem('currentUser'); location.reload(); }
 function toggleTheme() {
-    document.body.classList.toggle('dark-mode');
-    const isDark = document.body.classList.contains('dark-mode');
+    const checkbox = document.getElementById('themeToggleCheckbox');
+    const isDark = checkbox.checked;
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    document.getElementById('themeToggleBtn').textContent = isDark ? '☀️' : '🌙';
 }
 // Kiểm tra URL hợp lệ (chỉ chấp nhận http/https, chặn javascript: và các chuỗi không phải URL)
 function isValidHttpUrl(str) {
