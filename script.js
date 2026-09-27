@@ -709,3 +709,50 @@ function escapeHtml(str) {
 document.getElementById('searchInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') { hideSuggestions(); triggerDefaultSearch(); }
 });
+// ==========================================
+// THÔNG BÁO KHI NHẤP CHUỘT PHẢI HOẶC NHẤN GIỮ (MOBILE)
+// ==========================================
+let toastTimeout;
+
+function showRightClickToast() {
+    const toast = document.getElementById('rightClickToast');
+    if (!toast) return;
+
+    // Hiển thị thông báo
+    toast.classList.add('show');
+
+    // Xóa bộ đếm thời gian cũ nếu thao tác liên tục
+    clearTimeout(toastTimeout);
+
+    // Tự động ẩn sau 2.5 giây
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2500);
+}
+
+// 1. Dành cho Máy tính (Click chuột phải)
+document.addEventListener('contextmenu', (e) => {
+    // Nếu muốn chặn menu chuột phải / menu chọn văn bản mặc định, mở comment dòng dưới:
+    // e.preventDefault(); 
+    showRightClickToast();
+});
+
+// 2. Dành cho Thiết bị di động (Nhấn giữ lâu - Long Press)
+let touchTimer = null;
+
+document.addEventListener('touchstart', (e) => {
+    // Bắt đầu đếm thời gian khi chạm vào màn hình (500ms được tính là nhấn giữ)
+    touchTimer = setTimeout(() => {
+        showRightClickToast();
+    }, 500);
+}, { passive: true });
+
+document.addEventListener('touchend', () => {
+    // Nếu buông tay ra trước 500ms thì hủy đếm (chỉ là chạm nhanh)
+    if (touchTimer) clearTimeout(touchTimer);
+});
+
+document.addEventListener('touchmove', () => {
+    // Nếu vuốt/cuộn trang thì hủy đếm
+    if (touchTimer) clearTimeout(touchTimer);
+});

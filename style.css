@@ -724,3 +724,64 @@ body.dark-mode .cam-select { background: #202124; color: #fff; border-color: #5f
     .searchbar-icon { width: 20px; height: 20px; }
     .search-icon { margin-top: 2px; }
 }
+/* ==========================================
+   CHỮ KÝ ẨN & THÔNG BÁO MOUSE RIGHT
+   ========================================== */
+
+/* 1. Chữ ký chìm góc màn hình */
+.stealth-signature {
+    position: fixed;
+    bottom: 4px;
+    right: 8px;
+    font-size: 10px;
+    color: rgba(0, 0, 0, 0.05); /* Rất mờ, gần như vô hình */
+    user-select: none;
+    pointer-events: auto;
+    transition: color 0.4s ease;
+    z-index: 9999;
+    font-family: Arial, sans-serif;
+}
+
+.stealth-signature:hover {
+    color: rgba(0, 0, 0, 0.6); /* Hiện rõ khi rê chuột vào */
+}
+
+body.dark-mode .stealth-signature {
+    color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .stealth-signature:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* 2. Thông báo khi nhấp chuột phải (Toast) */
+.right-click-toast {
+    position: fixed;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(30, 41, 59, 0.9);
+    color: #ffffff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(6px);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.right-click-toast.show {
+    bottom: 25px;
+    opacity: 1;
+}
+
+body.dark-mode .right-click-toast {
+    background-color: rgba(241, 245, 249, 0.9);
+    color: #0f172a;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
