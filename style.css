@@ -785,3 +785,70 @@ body.dark-mode .right-click-toast {
     color: #0f172a;
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
+/* ===== NHÂN VẬT PIXEL & BÓNG THOẠI ===== */
+.character {
+  position: fixed;
+  width: 112px;
+  height: 112px;
+  left: 0;
+  top: 0;
+  background-image: url("./character_spritesheet.png");
+  background-repeat: no-repeat;
+  background-size: 896px 112px; /* Đúng 8 khung hình x 112px */
+  background-position: 0 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  will-change: transform, background-position;
+  filter: drop-shadow(0 10px 6px rgba(0, 0, 0, 0.3));
+  z-index: 998;
+  pointer-events: none;
+}
+
+/* Hoạt ảnh trạng thái */
+.character.idle {
+  animation: idle 1000ms steps(2) infinite;
+}
+.character.walk {
+  animation: walk 800ms steps(4) infinite; /* Bước đi thong thả hơn */
+}
+.character.jump {
+  animation: jumpPose 600ms steps(2) infinite;
+}
+
+/* Định vị chính xác tọa độ cắt ảnh cho từng trạng thái */
+@keyframes idle {
+  from { background-position-x: 0px; }
+  to   { background-position-x: -224px; } /* Khung 1 & 2 */
+}
+
+@keyframes walk {
+  from { background-position-x: -224px; }
+  to   { background-position-x: -672px; } /* Khung 3, 4, 5, 6 */
+}
+
+@keyframes jumpPose {
+  from { background-position-x: -672px; }
+  to   { background-position-x: -896px; } /* Khung 7 & 8 */
+}
+
+/* Khung thoại */
+.bubble {
+  position: fixed;
+  z-index: 999;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111111;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.bubble.show {
+  opacity: 1;
+}
+
