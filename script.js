@@ -756,3 +756,185 @@ document.addEventListener('touchmove', () => {
     // Nếu vuốt/cuộn trang thì hủy đếm
     if (touchTimer) clearTimeout(touchTimer);
 });
+// ==========================================
+// LOGIC ĐIỀU KHIỂN NHÂN VẬT & BÓNG THOẠI
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  const character = document.getElementById("character");
+  const bubble = document.getElementById("bubble");
+
+  if (!character || !bubble) {
+    console.error("Không tìm thấy thẻ #character hoặc #bubble trong HTML!");
+    return;
+  }
+
+  // Khai báo bộ câu thoại phong phú theo từng ngữ cảnh
+  const DIALOGUES = {
+    click: [
+      "Đi thôi nào!",
+      "Tới đó ngay đây!",
+      "Đợi mình chút nhé!",
+      "Đi khám phá thôi!",
+      "OK, xuất phát!",
+      "Đang đến đây~",
+      "Theo chân mình nào!"
+    ],
+    // Các câu thoại chào mừng khi vừa di chuyển tới điểm mới
+    greeting: [
+      "Xin chào tôi là Hồ Hiếu Nghĩa , là web developer của trang này.",
+      "Chào mừng bạn đến với trang web!",
+      "Đã tới nơi rồi nè, chào bạn!",
+      "Xin chào! Chúc bạn một ngày tốt lành!",
+      "Hề lố! Rất vui được gặp bạn~",
+      "Đã tới điểm hẹn rồi nhé!"
+    ],
+    idle: [
+      "Hôm nay trời đẹp thật!",
+      "Đang suy nghĩ gì đó...",
+      "Nghỉ chân chút đã~",
+      "Bạn có cần mình giúp gì không?",
+      "Lalalala... ♪",
+      "Trang web này thú vị quá!",
+      "Đang đứng ngắm cảnh..."
+    ],
+    jump: [
+      "Bật cao lên!",
+      "Hế-tô!",
+      "Nhảy nè!",
+      "Ui chao!"
+    ]
+  };
+
+  function getRandomPhrase(type) {
+    const list = DIALOGUES[type] || DIALOGUES.idle;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+
+  const state = {
+    x: window.innerWidth * 0.5,
+    y: window.innerHeight * 0.65,
+    tx: window.innerWidth * 0.5,
+    ty: window.innerHeight * 0.65,
+    speed: 0.12, // Tốc độ di chuyển (đi bộ thong thả)
+    mode: "idle",
+    facing: 1,
+    jumpTimer: 0,
+    idleTalkTimer: 0,
+    pauseTimer: 0,    // Đếm ngược thời gian đứng yên tạm thời (ms)
+    isMoving: false   // Đánh dấu nhân vật có đang trong trạng thái di chuyển hay không
+  };
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function newDestination() {
+    const margin = 70;
+    state.tx = margin + Math.random() * Math.max(1, window.innerWidth - margin * 2);
+    state.ty = margin + Math.random() * Math.max(1, window.innerHeight - margin * 2);
+  }
+
+  function setMode(mode) {
+    if (state.mode === mode) return;
+    state.mode = mode;
+    character.className = "character " + mode;
+  }
+
+  function speak(text) {
+    bubble.textContent = text;
+    bubble.classList.add("show");
+    clearTimeout(speak.timer);
+    speak.timer = setTimeout(() => bubble.classList.remove("show"), 2200);
+  }
+
+  function update(dt) {
+    const dx = state.tx - state.x;
+    const dy = state.ty - state.y;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist < 6) {
+      setMode("idle");
+
+      // Vừa di chuyển tới nơi: bắt đầu tạm dừng từ 1 đến 2 giây (1000ms - 2000ms) và nói câu chào
+      if (state.isMoving) {
+        state.isMoving = false;
+        state.pauseTimer = 1000 + Math.random() * 1000;
+        speak(getRandomPhrase("greeting"));
+      }
+
+      // Nếu đang trong thời gian đứng yên tạm thời thì giảm bộ đếm và không nhận điểm di chuyển mới
+      if (state.pauseTimer > 0) {
+        state.pauseTimer -= dt;
+      } else {
+        // Hết thời gian tạm dừng -> Chuyển sang trạng thái rảnh rỗi bình thường
+        state.idleTalkTimer += dt;
+        if (state.idleTalkTimer > 7000) {
+          state.idleTalkTimer = 0;
+          if (Math.random() < 0.35) {
+            speak(getRandomPhrase("idle"));
+          }
+        }
+
+        // Tự động chọn điểm đi dạo tiếp theo khi rảnh rỗi
+        if (Math.random() < 0.0015) newDestination();
+      }
+    } else {
+      // Đang trên đường di chuyển
+      state.isMoving = true;
+      state.idleTalkTimer = 0;
+      state.facing = dx >= 0 ? 1 : -1;
+
+      const step = Math.min(dist, state.speed * dt);
+      state.x += (dx / dist) * step;
+      state.y += (dy / dist) * step;
+
+      // Thỉnh thoảng nhảy ngẫu nhiên khi đang đi
+      if (state.jumpTimer <= 0 && Math.random() < 0.0012) {
+        state.jumpTimer = 500;
+        speak(getRandomPhrase("jump"));
+      }
+
+      if (state.jumpTimer > 0) {
+        state.jumpTimer -= dt;
+        setMode("jump");
+      } else {
+        setMode("walk");
+      }
+    }
+
+    const margin = 35;
+    state.x = clamp(state.x, margin, window.innerWidth - margin);
+    state.y = clamp(state.y, margin, window.innerHeight - margin);
+
+    const posX = Math.round(state.x - 56);
+    const posY = Math.round(state.y - 56);
+
+    character.style.transform = `translate(${posX}px, ${posY}px) scaleX(${state.facing})`;
+    bubble.style.left = Math.round(state.x) + "px";
+    bubble.style.top = Math.round(state.y - 58) + "px";
+  }
+
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(32, now - last);
+    last = now;
+    update(dt);
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("resize", () => {
+    state.x = clamp(state.x, 35, window.innerWidth - 35);
+    state.y = clamp(state.y, 35, window.innerHeight - 35);
+  });
+
+  // Sự kiện nhấp chuột / chạm màn hình
+  document.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button, input, select, textarea, a")) return;
+
+    state.tx = e.clientX;
+    state.ty = e.clientY;
+    speak(getRandomPhrase("click"));
+  });
+
+  requestAnimationFrame(loop);
+});
