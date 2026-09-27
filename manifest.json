@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "UniSearchVN - New Tab",
+  "version": "1.0",
+  "description": "Trang khởi động tìm kiếm đa năng cá nhân",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "activeTab"
+  ]
+}
