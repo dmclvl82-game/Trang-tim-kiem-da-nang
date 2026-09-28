@@ -997,14 +997,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Máy tính: phím tắt (không hoạt động khi đang gõ trong ô nhập)
   //   T = chỉnh cà vạt, W = vẫy tay chào, J = nhảy
-  document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
-    const k = e.key.toLowerCase();
-    if (k === "t") triggerAction("adjust-tie");
-    else if (k === "w") triggerAction("wave");
-    else if (k === "j") triggerAction("jump");
-  });
+  window.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    if (e.target && e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+    // Dùng e.code (vị trí phím) để chạy được cả khi đang bật bộ gõ tiếng Việt (Telex/VNI)
+    const k = (e.code || "").toLowerCase();
+    if (k === "keyt") triggerAction("adjust-tie");
+    else if (k === "keyw") triggerAction("wave");
+    else if (k === "keyj") triggerAction("jump");
+  }, true);
+  console.log("[UniSearchVN] Nhân vật v24h đã tải. Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy; chạm vào nhân vật để đổi hành động.");
 
   requestAnimationFrame(loop);
 });
