@@ -787,49 +787,57 @@ body.dark-mode .right-click-toast {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 /* ===== NHÂN VẬT PIXEL & BÓNG THOẠI ===== */
+/*
+  Spritesheet: 5 hành động x 24 khung, mỗi khung 112px -> 13440px x 112px
+  idle      :      0px ->  -2688px
+  walk      :  -2688px ->  -5376px
+  jump      :  -5376px ->  -8064px
+  adjust-tie:  -8064px -> -10752px
+  wave      : -10752px -> -13440px
+*/
 .character {
   position: fixed;
   width: 112px;
   height: 112px;
   left: 0;
   top: 0;
-  background-image: url("./character_spritesheet.png");
+  background-image: url("./character_spritesheet.png?v=24f");
   background-repeat: no-repeat;
-  background-size: 896px 112px; /* Đúng 8 khung hình x 112px */
+  background-size: 13440px 112px;
   background-position: 0 0;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  image-rendering: auto;
   will-change: transform, background-position;
   filter: drop-shadow(0 10px 6px rgba(0, 0, 0, 0.3));
   z-index: 998;
   pointer-events: none;
 }
 
-/* Hoạt ảnh trạng thái */
-.character.idle {
-  animation: idle 1000ms steps(2) infinite;
-}
-.character.walk {
-  animation: walk 800ms steps(4) infinite; /* Bước đi thong thả hơn */
-}
-.character.jump {
-  animation: jumpPose 600ms steps(2) infinite;
-}
+/* Hoạt ảnh trạng thái (mỗi hành động 24 khung) */
+.character.idle       { animation: idle 2400ms steps(24) infinite; }
+.character.walk       { animation: walk 900ms steps(24) infinite; }
+.character.jump       { animation: jumpPose 900ms steps(24) infinite; }
+.character.adjust-tie { animation: adjustTie 2000ms steps(24) infinite; }
+.character.wave       { animation: wave 2000ms steps(24) infinite; }
 
-/* Định vị chính xác tọa độ cắt ảnh cho từng trạng thái */
 @keyframes idle {
   from { background-position-x: 0px; }
-  to   { background-position-x: -224px; } /* Khung 1 & 2 */
+  to   { background-position-x: -2688px; }
 }
-
 @keyframes walk {
-  from { background-position-x: -224px; }
-  to   { background-position-x: -672px; } /* Khung 3, 4, 5, 6 */
+  from { background-position-x: -2688px; }
+  to   { background-position-x: -5376px; }
 }
-
 @keyframes jumpPose {
-  from { background-position-x: -672px; }
-  to   { background-position-x: -896px; } /* Khung 7 & 8 */
+  from { background-position-x: -5376px; }
+  to   { background-position-x: -8064px; }
+}
+@keyframes adjustTie {
+  from { background-position-x: -8064px; }
+  to   { background-position-x: -10752px; }
+}
+@keyframes wave {
+  from { background-position-x: -10752px; }
+  to   { background-position-x: -13440px; }
 }
 
 /* Khung thoại */

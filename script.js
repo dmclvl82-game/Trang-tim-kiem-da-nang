@@ -821,8 +821,14 @@ document.addEventListener("DOMContentLoaded", () => {
     jumpTimer: 0,
     idleTalkTimer: 0,
     pauseTimer: 0,    // Đếm ngược thời gian đứng yên tạm thời (ms)
-    isMoving: false   // Đánh dấu nhân vật có đang trong trạng thái di chuyển hay không
+    isMoving: false,  // Đánh dấu nhân vật có đang trong trạng thái di chuyển hay không
+    action: null,     // Hành động đặc biệt khi đứng yên: "wave" | "adjust-tie"
+    actionTimer: 0    // Thời gian còn lại của hành động đặc biệt (ms)
   };
+
+  const WAVE_MS = 2000;       // 1 vòng vẫy tay = 24 khung
+  const TIE_MS = 2000;        // 1 vòng chỉnh cà vạt = 24 khung
+  const JUMP_MS = 900;        // 1 vòng nhảy = 24 khung
 
   function clamp(v, min, max) {
     return Math.max(min, Math.min(max, v));
@@ -853,13 +859,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const dist = Math.hypot(dx, dy);
 
     if (dist < 6) {
-      setMode("idle");
-
-      // Vừa di chuyển tới nơi: bắt đầu tạm dừng từ 1 đến 2 giây (1000ms - 2000ms) và nói câu chào
+      // Vừa di chuyển tới nơi: vẫy tay chào + nói câu chào, đứng yên 2 - 3 giây
       if (state.isMoving) {
         state.isMoving = false;
-        state.pauseTimer = 1000 + Math.random() * 1000;
+        state.jumpTimer = 0;
+        state.pauseTimer = WAVE_MS + Math.random() * 1000;
+        state.action = "wave";
+        state.actionTimer = WAVE_MS;
         speak(getRandomPhrase("greeting"));
+      }
+
+      // Đang thực hiện hành động đặc biệt (vẫy tay / chỉnh cà vạt) thì giữ nguyên tới khi hết 1 vòng
+      if (state.actionTimer > 0) {
+        state.actionTimer -= dt;
+        setMode(state.action);
+      } else {
+        state.action = null;
+        setMode("idle");
       }
 
       // Nếu đang trong thời gian đứng yên tạm thời thì giảm bộ đếm và không nhận điểm di chuyển mới
@@ -870,8 +886,14 @@ document.addEventListener("DOMContentLoaded", () => {
         state.idleTalkTimer += dt;
         if (state.idleTalkTimer > 7000) {
           state.idleTalkTimer = 0;
-          if (Math.random() < 0.35) {
+          const r = Math.random();
+          if (r < 0.35) {
             speak(getRandomPhrase("idle"));
+          } else if (r < 0.65) {
+            // Thỉnh thoảng chỉnh lại cà vạt
+            state.action = "adjust-tie";
+            state.actionTimer = TIE_MS;
+            setMode("adjust-tie");
           }
         }
 
@@ -882,6 +904,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Đang trên đường di chuyển
       state.isMoving = true;
       state.idleTalkTimer = 0;
+      state.action = null;
+      state.actionTimer = 0;
       state.facing = dx >= 0 ? 1 : -1;
 
       const step = Math.min(dist, state.speed * dt);
@@ -890,7 +914,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Thỉnh thoảng nhảy ngẫu nhiên khi đang đi
       if (state.jumpTimer <= 0 && Math.random() < 0.0012) {
-        state.jumpTimer = 500;
+        state.jumpTimer = JUMP_MS;
         speak(getRandomPhrase("jump"));
       }
 
