@@ -815,7 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
     y: window.innerHeight * 0.65,
     tx: window.innerWidth * 0.5,
     ty: window.innerHeight * 0.65,
-    speed: 0.12, // Tốc độ di chuyển (đi bộ thong thả)
+    speed: 0.09, // Tốc độ di chuyển (đi bộ thong thả)
     mode: "idle",
     facing: 1,
     jumpTimer: 0,
@@ -884,16 +884,16 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         // Hết thời gian tạm dừng -> Chuyển sang trạng thái rảnh rỗi bình thường
         state.idleTalkTimer += dt;
-        if (state.idleTalkTimer > 7000) {
+        if (state.idleTalkTimer > 2500) {
           state.idleTalkTimer = 0;
           const r = Math.random();
-          if (r < 0.35) {
-            speak(getRandomPhrase("idle"));
-          } else if (r < 0.65) {
-            // Thỉnh thoảng chỉnh lại cà vạt
+          if (r < 0.6) {
+            // Chỉnh lại cà vạt (1 vòng 24 khung)
             state.action = "adjust-tie";
             state.actionTimer = TIE_MS;
             setMode("adjust-tie");
+          } else if (r < 0.85) {
+            speak(getRandomPhrase("idle"));
           }
         }
 

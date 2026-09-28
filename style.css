@@ -801,7 +801,7 @@ body.dark-mode .right-click-toast {
   height: 112px;
   left: 0;
   top: 0;
-  background-image: url("./character_spritesheet.png?v=24f");
+  background-image: url("./character_spritesheet.png?v=24g");
   background-repeat: no-repeat;
   background-size: 13440px 112px;
   background-position: 0 0;
@@ -814,7 +814,7 @@ body.dark-mode .right-click-toast {
 
 /* Hoạt ảnh trạng thái (mỗi hành động 24 khung) */
 .character.idle       { animation: idle 2400ms steps(24) infinite; }
-.character.walk       { animation: walk 900ms steps(24) infinite; }
+.character.walk       { animation: walk 640ms steps(24) infinite; }
 .character.jump       { animation: jumpPose 900ms steps(24) infinite; }
 .character.adjust-tie { animation: adjustTie 2000ms steps(24) infinite; }
 .character.wave       { animation: wave 2000ms steps(24) infinite; }
