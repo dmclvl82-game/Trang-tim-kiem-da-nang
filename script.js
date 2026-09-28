@@ -13,8 +13,7 @@ const defaultEngines = [
     { id: 'chatgpt', name: 'ChatGPT', color: '#10a37f', borderColor: '#10a37f', type: 'builtin', url: 'https://chatgpt.com' },
     { id: 'notes', name: 'Note (Ghi chú)', color: '#f59e0b', borderColor: '#f59e0b', type: 'builtin', url: 'notes' },
     { id: 'camera', name: 'Camera', color: '#6366f1', borderColor: '#6366f1', type: 'builtin', url: 'camera' }
-];
- 
+]; 
 
 function getEngines() {
     const stored = localStorage.getItem('searchEngines');
@@ -779,7 +778,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "OK, xuất phát!",
       "Đang đến đây~",
       "Theo chân mình nào!"
-      
     ],
     // Các câu thoại chào mừng khi vừa di chuyển tới điểm mới
     greeting: [
@@ -789,7 +787,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "Xin chào! Chúc bạn một ngày tốt lành!",
       "Hề lố! Rất vui được gặp bạn~",
       "Đã tới điểm hẹn rồi nhé!"
-     
     ],
     idle: [
       "Hôm nay trời đẹp thật!",
@@ -799,15 +796,12 @@ document.addEventListener("DOMContentLoaded", () => {
       "Lalalala... ♪",
       "Trang web này thú vị quá!",
       "Đang đứng ngắm cảnh..."
-      
-       
     ],
     jump: [
       "Bật cao lên!",
       "Hế-tô!",
       "Nhảy nè!",
       "Ui chao!"
-      
     ]
   };
 
@@ -967,7 +961,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Chạm/nhấp trúng người nhân vật -> làm hành động (xoay vòng), không di chuyển
     if (Math.abs(e.clientX - state.x) < 40 && Math.abs(e.clientY - state.y) < 56) {
-      const list = ["adjust-tie", "wave", "jump"];
+      const list = ["adjust-tie", "wave", "jump", "matrix"];
       triggerAction(list[tapCount % list.length]);
       tapCount++;
       return;
@@ -978,16 +972,89 @@ document.addEventListener("DOMContentLoaded", () => {
     speak(getRandomPhrase("click"));
   });
 
-  // Kích hoạt nhanh một hành động tại chỗ: "adjust-tie" | "wave" | "jump"
+  // ===== HIỆU ỨNG MÃ NHỊ PHÂN RƠI TOÀN TRANG (kéo dài 2 giây) =====
+  const MATRIX_MS = 2000;
+  const matrixFx = { overlay: null, timer: null, fadeTimer: null, stopTimer: null };
+
+  function stopMatrix() {
+    clearInterval(matrixFx.timer);
+    clearTimeout(matrixFx.fadeTimer);
+    clearTimeout(matrixFx.stopTimer);
+    if (matrixFx.overlay) matrixFx.overlay.remove();
+    matrixFx.overlay = null;
+    document.body.classList.remove("matrix-on");
+  }
+
+  function startMatrix() {
+    stopMatrix();
+    const overlay = document.createElement("div");
+    overlay.className = "matrix-overlay";
+    const canvas = document.createElement("canvas");
+    overlay.appendChild(canvas);
+    document.body.appendChild(overlay);
+    matrixFx.overlay = overlay;
+
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const binary = "01";
+    const fontSize = 16;
+    const columns = Math.ceil(canvas.width / fontSize);
+    const rainDrops = [];
+    for (let i = 0; i < columns; i++) {
+      rainDrops[i] = Math.random() * -20;   // so le vị trí bắt đầu phía trên màn hình
+    }
+
+    function draw() {
+      // Lớp phủ đen mờ tạo vệt đuôi mờ dần
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#0F0";
+      ctx.font = fontSize + "px monospace";
+      for (let i = 0; i < rainDrops.length; i++) {
+        const text = binary.charAt(Math.floor(Math.random() * binary.length));
+        const x = i * fontSize;
+        const y = rainDrops[i] * fontSize;
+        ctx.fillText(text, x, y);
+        if (y > canvas.height && Math.random() > 0.975) {
+          rainDrops[i] = 0;
+        }
+        rainDrops[i]++;
+      }
+    }
+    draw();
+    matrixFx.timer = setInterval(draw, 30);
+
+    document.body.classList.add("matrix-on");
+    requestAnimationFrame(() => overlay.classList.add("show"));            // hiện dần
+    matrixFx.fadeTimer = setTimeout(() => overlay.classList.remove("show"), MATRIX_MS - 350); // mờ dần
+    matrixFx.stopTimer = setTimeout(stopMatrix, MATRIX_MS);                // hết 2 giây
+  }
+
+  // Kích hoạt nhanh một hành động tại chỗ: "adjust-tie" | "wave" | "jump" | "matrix"
   function triggerAction(name) {
     state.tx = state.x; state.ty = state.y;      // dừng lại tại chỗ
     state.isMoving = false;
     state.jumpTimer = 0;
     state.action = null; state.actionTimer = 0;
+    // Khởi động lại hoạt ảnh từ khung đầu tiên
+    character.className = "character";
+    void character.offsetWidth;
+    state.mode = "";
     if (name === "adjust-tie") {
       state.action = "adjust-tie"; state.actionTimer = TIE_MS;
       state.pauseTimer = TIE_MS + 500;
       setMode("adjust-tie");
+    } else if (name === "matrix") {
+      // Động tác thứ 4: dùng hoạt ảnh chỉnh cà vạt + mã nhị phân rơi toàn trang trong 2 giây
+      state.action = "adjust-tie"; state.actionTimer = MATRIX_MS;
+      state.pauseTimer = MATRIX_MS + 500;
+      setMode("adjust-tie");
+      startMatrix();
+      speak("Đang giải mã dữ liệu... 0101");
     } else if (name === "wave") {
       state.action = "wave"; state.actionTimer = WAVE_MS;
       state.pauseTimer = WAVE_MS + 500;
@@ -1002,7 +1069,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Máy tính: phím tắt (không hoạt động khi đang gõ trong ô nhập)
-  //   T = chỉnh cà vạt, W = vẫy tay chào, J = nhảy
+  //   T = chỉnh cà vạt, W = vẫy tay chào, J = nhảy, A = mã nhị phân (động tác 4)
   window.addEventListener("keydown", (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
     if (e.target && e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
@@ -1011,8 +1078,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (k === "keyt") triggerAction("adjust-tie");
     else if (k === "keyw") triggerAction("wave");
     else if (k === "keyj") triggerAction("jump");
+    else if (k === "keya") triggerAction("matrix");
   }, true);
-  console.log("[UniSearchVN] Nhân vật v24h đã tải. Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy; chạm vào nhân vật để đổi hành động.");
+  console.log("[UniSearchVN] Nhân vật v24h đã tải. Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy, A = mã nhị phân; chạm vào nhân vật 4 lần để ra động tác thứ 4.");
 
   requestAnimationFrame(loop);
 });

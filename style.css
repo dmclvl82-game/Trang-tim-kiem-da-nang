@@ -861,3 +861,23 @@ body.dark-mode .right-click-toast {
   opacity: 1;
 }
 
+
+/* ===== HIỆU ỨNG MÃ NHỊ PHÂN (động tác 4) ===== */
+.matrix-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;              /* phủ toàn trang, nằm dưới nhân vật khi đang chạy */
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+.matrix-overlay.show { opacity: 1; }
+.matrix-overlay canvas { display: block; width: 100%; height: 100%; }
+
+/* Đưa nhân vật và bóng thoại lên trên lớp mã nhị phân */
+body.matrix-on .character {
+  z-index: 9500;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 70, 0.6)) drop-shadow(0 10px 6px rgba(0, 0, 0, 0.3));
+}
+body.matrix-on .bubble { z-index: 9501; }
