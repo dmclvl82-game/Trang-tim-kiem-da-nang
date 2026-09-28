@@ -779,7 +779,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "OK, xuất phát!",
       "Đang đến đây~",
       "Theo chân mình nào!"
-      "Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
+      
     ],
     // Các câu thoại chào mừng khi vừa di chuyển tới điểm mới
     greeting: [
@@ -789,7 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Xin chào! Chúc bạn một ngày tốt lành!",
       "Hề lố! Rất vui được gặp bạn~",
       "Đã tới điểm hẹn rồi nhé!"
-      "Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
+     
     ],
     idle: [
       "Hôm nay trời đẹp thật!",
@@ -799,7 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Lalalala... ♪",
       "Trang web này thú vị quá!",
       "Đang đứng ngắm cảnh..."
-      "Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
+      
        
     ],
     jump: [
@@ -807,7 +807,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Hế-tô!",
       "Nhảy nè!",
       "Ui chao!"
-      "Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
+      
     ]
   };
 
