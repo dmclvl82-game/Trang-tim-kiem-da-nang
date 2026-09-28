@@ -826,6 +826,7 @@ document.addEventListener("DOMContentLoaded", () => {
     actionTimer: 0    // Thời gian còn lại của hành động đặc biệt (ms)
   };
 
+  let tapCount = 0;           // đếm số lần chạm vào nhân vật
   const WAVE_MS = 2000;       // 1 vòng vẫy tay = 24 khung
   const TIE_MS = 2000;        // 1 vòng chỉnh cà vạt = 24 khung
   const JUMP_MS = 900;        // 1 vòng nhảy = 24 khung
@@ -870,7 +871,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Đang thực hiện hành động đặc biệt (vẫy tay / chỉnh cà vạt) thì giữ nguyên tới khi hết 1 vòng
-      if (state.actionTimer > 0) {
+      if (state.jumpTimer > 0) {
+        state.jumpTimer -= dt;
+        setMode("jump");
+      } else if (state.actionTimer > 0) {
         state.actionTimer -= dt;
         setMode(state.action);
       } else {
@@ -955,9 +959,51 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button, input, select, textarea, a")) return;
 
+    // Chạm/nhấp trúng người nhân vật -> làm hành động (xoay vòng), không di chuyển
+    if (Math.abs(e.clientX - state.x) < 40 && Math.abs(e.clientY - state.y) < 56) {
+      const list = ["adjust-tie", "wave", "jump"];
+      triggerAction(list[tapCount % list.length]);
+      tapCount++;
+      return;
+    }
+
     state.tx = e.clientX;
     state.ty = e.clientY;
     speak(getRandomPhrase("click"));
+  });
+
+  // Kích hoạt nhanh một hành động tại chỗ: "adjust-tie" | "wave" | "jump"
+  function triggerAction(name) {
+    state.tx = state.x; state.ty = state.y;      // dừng lại tại chỗ
+    state.isMoving = false;
+    state.jumpTimer = 0;
+    state.action = null; state.actionTimer = 0;
+    if (name === "adjust-tie") {
+      state.action = "adjust-tie"; state.actionTimer = TIE_MS;
+      state.pauseTimer = TIE_MS + 500;
+      setMode("adjust-tie");
+    } else if (name === "wave") {
+      state.action = "wave"; state.actionTimer = WAVE_MS;
+      state.pauseTimer = WAVE_MS + 500;
+      setMode("wave");
+      speak(getRandomPhrase("greeting"));
+    } else {
+      state.jumpTimer = JUMP_MS;
+      state.pauseTimer = JUMP_MS + 300;
+      setMode("jump");
+      speak(getRandomPhrase("jump"));
+    }
+  }
+
+  // Máy tính: phím tắt (không hoạt động khi đang gõ trong ô nhập)
+  //   T = chỉnh cà vạt, W = vẫy tay chào, J = nhảy
+  document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target && e.target.closest && e.target.closest("input, textarea, select")) return;
+    const k = e.key.toLowerCase();
+    if (k === "t") triggerAction("adjust-tie");
+    else if (k === "w") triggerAction("wave");
+    else if (k === "j") triggerAction("jump");
   });
 
   requestAnimationFrame(loop);
