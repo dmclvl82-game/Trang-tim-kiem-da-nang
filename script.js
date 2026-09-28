@@ -779,6 +779,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "OK, xuất phát!",
       "Đang đến đây~",
       "Theo chân mình nào!"
+      "T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
     ],
     // Các câu thoại chào mừng khi vừa di chuyển tới điểm mới
     greeting: [
@@ -798,12 +799,14 @@ document.addEventListener("DOMContentLoaded", () => {
       "Lalalala... ♪",
       "Trang web này thú vị quá!",
       "Đang đứng ngắm cảnh..."
+      "T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
     ],
     jump: [
       "Bật cao lên!",
       "Hế-tô!",
       "Nhảy nè!",
       "Ui chao!"
+      "T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
     ]
   };
 
