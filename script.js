@@ -13,8 +13,7 @@ const defaultEngines = [
     { id: 'chatgpt', name: 'ChatGPT', color: '#10a37f', borderColor: '#10a37f', type: 'builtin', url: 'https://chatgpt.com' },
     { id: 'notes', name: 'Note (Ghi chú)', color: '#f59e0b', borderColor: '#f59e0b', type: 'builtin', url: 'notes' },
     { id: 'camera', name: 'Camera', color: '#6366f1', borderColor: '#6366f1', type: 'builtin', url: 'camera' }
-];
- 
+]; 
 
 function getEngines() {
     const stored = localStorage.getItem('searchEngines');
@@ -779,7 +778,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "OK, xuất phát!",
       "Đang đến đây~",
       "Theo chân mình nào!"
-      "T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
     ],
     // Các câu thoại chào mừng khi vừa di chuyển tới điểm mới
     greeting: [
@@ -789,7 +787,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "Xin chào! Chúc bạn một ngày tốt lành!",
       "Hề lố! Rất vui được gặp bạn~",
       "Đã tới điểm hẹn rồi nhé!"
-      "T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
     ],
     idle: [
       "Hôm nay trời đẹp thật!",
@@ -799,14 +796,12 @@ document.addEventListener("DOMContentLoaded", () => {
       "Lalalala... ♪",
       "Trang web này thú vị quá!",
       "Đang đứng ngắm cảnh..."
-      "T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
     ],
     jump: [
       "Bật cao lên!",
       "Hế-tô!",
       "Nhảy nè!",
       "Ui chao!"
-      "T = chỉnh cà vạt, W = vẫy tay, J = nhảy"
     ]
   };
 
