@@ -5,16 +5,15 @@ const defaultEngines = [
     { id: 'yahoo', name: 'Yahoo!', color: '#6001d2', borderColor: '#6001d2', type: 'builtin', url: 'https://vn.search.yahoo.com/search?p=' },
     { id: 'duckduckgo', name: 'DuckDuckGo', color: '#de5833', borderColor: '#de5833', type: 'builtin', url: 'https://duckduckgo.com/?q=' },
     { id: 'startpage', name: 'Startpage', color: '#3b5998', borderColor: '#3b5998', type: 'builtin', url: 'https://www.startpage.com/do/search?q=' },
-    { id: 'youtube', name: 'YouTube', color: '#ff0000', borderColor: '#ff0000', type: 'builtin', url: 'https://www.youtube.com' },
-    { id: 'tiktok', name: 'TikTok', color: '#010101', borderColor: '#010101', type: 'builtin', url: 'https://www.tiktok.com' },
-    { id: 'facebook', name: 'Facebook', color: '#1877f2', borderColor: '#1877f2', type: 'builtin', url: 'facebook.com' },
+    { id: 'youtube', name: 'YouTube', color: '#ff0000', borderColor: '#ff0000', type: 'builtin', url: 'https://www.youtube.com/results?search_query=' },
+    { id: 'tiktok', name: 'TikTok', color: '#010101', borderColor: '#010101', type: 'builtin', url: 'https://www.tiktok.com/search?q=' },
+    { id: 'facebook', name: 'Facebook', color: '#1877f2', borderColor: '#1877f2', type: 'builtin', url: 'https://www.facebook.com/' },
     { id: 'shopee', name: 'Shopee', color: '#ee4d2d', borderColor: '#ee4d2d', type: 'builtin', url: 'https://shopee.vn/search?keyword=' },
     { id: 'gemini', name: 'Gemini', color: '#4285F4', borderColor: '#4285F4', type: 'builtin', url: 'https://gemini.google.com' },
     { id: 'chatgpt', name: 'ChatGPT', color: '#10a37f', borderColor: '#10a37f', type: 'builtin', url: 'https://chatgpt.com' },
     { id: 'notes', name: 'Note (Ghi chú)', color: '#f59e0b', borderColor: '#f59e0b', type: 'builtin', url: 'notes' },
     { id: 'camera', name: 'Camera', color: '#6366f1', borderColor: '#6366f1', type: 'builtin', url: 'camera' }
-];
- 
+]; 
 
 function getEngines() {
     const stored = localStorage.getItem('searchEngines');
@@ -612,9 +611,16 @@ function performSearch(engineId) {
 
     let url = engine.url;
     if (engine.type === 'builtin') {
-        if (['gemini','chatgpt'].includes(engine.id)) url = engine.url;
-        else url = query === "" ? engine.url.split('?')[0] : engine.url + encodeURIComponent(query);
-    } else { url = query === "" ? engine.url : engine.url + encodeURIComponent(query); }
+        if (['gemini','chatgpt'].includes(engine.id)) {
+            url = engine.url;
+        } else if (engine.id === 'facebook') {
+            url = query === "" ? 'https://www.facebook.com/' : 'https://www.facebook.com/search/top?q=' + encodeURIComponent(query);
+        } else {
+            url = query === "" ? engine.url.split('?')[0] : engine.url + encodeURIComponent(query);
+        }
+    } else { 
+        url = query === "" ? engine.url : engine.url + encodeURIComponent(query); 
+    }
     window.open(url, '_blank', 'noopener,noreferrer');
 }
 
