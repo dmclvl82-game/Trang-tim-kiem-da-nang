@@ -12,13 +12,24 @@ const defaultEngines = [
     { id: 'gemini', name: 'Gemini', color: '#4285F4', borderColor: '#4285F4', type: 'builtin', url: 'https://gemini.google.com' },
     { id: 'chatgpt', name: 'ChatGPT', color: '#10a37f', borderColor: '#10a37f', type: 'builtin', url: 'https://chatgpt.com' },
     { id: 'notes', name: 'Note (Ghi chú)', color: '#f59e0b', borderColor: '#f59e0b', type: 'builtin', url: 'notes' },
-    { id: 'camera', name: 'Camera', color: '#6366f1', borderColor: '#6366f1', type: 'builtin', url: 'camera' }
+    { id: 'camera', name: 'Camera', color: '#6366f1', borderColor: '#6366f1', type: 'builtin', url: 'camera' },
+    { id: 'matrix', name: 'Định thức (Ma trận)', color: '#7c3aed', borderColor: '#7c3aed', type: 'builtin', url: 'matrix' }
 ]; 
+
+// Các nút hệ thống (mở workspace riêng, không thể xóa)
+const SYSTEM_ENGINE_IDS = ['notes', 'camera', 'matrix'];
 
 function getEngines() {
     const stored = localStorage.getItem('searchEngines');
     if (stored) {
-        try { return JSON.parse(stored); } catch (e) {}
+        try {
+            const list = JSON.parse(stored);
+            // Người dùng cũ đã lưu danh sách nút: tự bổ sung các nút hệ thống mới (vd: Định thức)
+            defaultEngines.forEach(d => {
+                if (SYSTEM_ENGINE_IDS.includes(d.id) && !list.some(e => e.id === d.id)) list.push({ ...d });
+            });
+            return list;
+        } catch (e) {}
     }
     return JSON.parse(JSON.stringify(defaultEngines));
 }
@@ -335,6 +346,8 @@ function toggleMainElements(show) {
     document.getElementById('searchButtonsContainer').style.display = show ? 'flex' : 'none';
     document.getElementById('notesWorkspace').style.display = 'none';
     document.getElementById('cameraWorkspace').style.display = 'none';
+    const matrixWs = document.getElementById('matrixWorkspace');
+    if (matrixWs) matrixWs.style.display = 'none';
 }
 
 // --- Tiện ích Đồng hồ & Thời tiết ---
@@ -508,7 +521,7 @@ function addSearchEngine() {
 }
 
 function removeSearchEngine(id) {
-    if (['notes','camera'].includes(id)) { alert('Không thể xóa nút hệ thống này!'); return; }
+    if (SYSTEM_ENGINE_IDS.includes(id)) { alert('Không thể xóa nút hệ thống này!'); return; }
     let engines = getEngines().filter(e => e.id !== id);
     localStorage.setItem('searchEngines', JSON.stringify(engines));
     renderSearchButtons(); renderSettingsEnginesList();
@@ -520,7 +533,7 @@ function renderSettingsEnginesList() {
     getEngines().forEach(e => {
         const div = document.createElement('div');
         div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: 4px; font-size: 13px;';
-        div.innerHTML = `<span style="color:${e.color}; font-weight:bold;">${e.name}</span>` + (!['notes','camera'].includes(e.id) ? `<button onclick="removeSearchEngine('${e.id}')" style="background:none; border:none; color:#EA4335; cursor:pointer; font-weight:bold;">Xóa</button>` : '');
+        div.innerHTML = `<span style="color:${e.color}; font-weight:bold;">${e.name}</span>` + (!SYSTEM_ENGINE_IDS.includes(e.id) ? `<button onclick="removeSearchEngine('${e.id}')" style="background:none; border:none; color:#EA4335; cursor:pointer; font-weight:bold;">Xóa</button>` : '');
         list.appendChild(div);
     });
 }
@@ -603,6 +616,7 @@ function performSearch(engineId) {
     hideSuggestions();
     if (engineId === 'notes') { openNotesWorkspace(); return; }
     if (engineId === 'camera') { openCameraWorkspace(); return; }
+    if (engineId === 'matrix') { openMatrixWorkspace(); return; }
 
     const query = document.getElementById('searchInput').value.trim();
     const engine = getEngines().find(e => e.id === engineId);
@@ -1091,3 +1105,505 @@ document.addEventListener("DOMContentLoaded", () => {
 
   requestAnimationFrame(loop);
 });
+
+// ==========================================
+// WORKSPACE: TÍNH ĐỊNH THỨC MA TRẬN (n × n)
+// ==========================================
+(function () {
+    'use strict';
+
+    const MAX_N = 10;          // Cỡ ma trận tối đa
+    const LAPLACE_MAX_N = 8;   // Laplace có độ phức tạp n! nên giới hạn cỡ ma trận
+    const MATHJAX_SRC = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+
+    let dim = 3;
+    let lastStepsText = '';
+    let guideTypeset = false;
+    let mathJaxPromise = null;
+    let mathJaxWarned = false;
+    let typesetChain = Promise.resolve();
+    let toastTimer = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- Phân số chính xác (BigInt, không bị tràn số) ----------
+    function bgcd(a, b) {
+        if (a < 0n) a = -a;
+        if (b < 0n) b = -b;
+        while (b) { [a, b] = [b, a % b]; }
+        return a;
+    }
+
+    class Fraction {
+        constructor(num, den = 1n) {
+            num = BigInt(num); den = BigInt(den);
+            if (den === 0n) throw new Error('Mẫu số không thể bằng 0.');
+            if (den < 0n) { num = -num; den = -den; }
+            const g = bgcd(num, den);
+            this.num = num / g;
+            this.den = den / g;
+        }
+        add(f) { return new Fraction(this.num * f.den + f.num * this.den, this.den * f.den); }
+        sub(f) { return new Fraction(this.num * f.den - f.num * this.den, this.den * f.den); }
+        mul(f) { return new Fraction(this.num * f.num, this.den * f.den); }
+        div(f) {
+            if (f.num === 0n) throw new Error('Phép chia cho 0.');
+            return new Fraction(this.num * f.den, this.den * f.num);
+        }
+        isZero() { return this.num === 0n; }
+        toTex() {
+            if (this.den === 1n) return `${this.num}`;
+            if (this.num < 0n) return `-\\frac{${-this.num}}{${this.den}}`;
+            return `\\frac{${this.num}}{${this.den}}`;
+        }
+        toString() { return this.den === 1n ? `${this.num}` : `${this.num}/${this.den}`; }
+        toNumber() { return Number(this.num) / Number(this.den); }
+        // Dạng TeX dùng làm thừa số trong tích: số âm được đặt trong ngoặc
+        toTexFactor() { return this.num < 0n ? `(${this.toTex()})` : this.toTex(); }
+    }
+
+    // Đọc số thập phân (chấp nhận cả dấu "." và dấu "," kiểu Việt Nam)
+    function parseDecimal(s) {
+        const m = /^([+-]?)(\d*)(?:[.,](\d*))?$/.exec(s);
+        if (!m) return null;
+        const intPart = m[2] || '';
+        const fracPart = m[3] || '';
+        if (!intPart && !fracPart) return null;
+        let num = BigInt((intPart || '0') + fracPart);
+        if (m[1] === '-') num = -num;
+        return new Fraction(num, 10n ** BigInt(fracPart.length));
+    }
+
+    // Trả về Fraction, hoặc null nếu ô nhập không hợp lệ. Ô trống = 0.
+    function parseCell(raw) {
+        const s = String(raw).replace(/\s+/g, '').replace(/−/g, '-');
+        if (s === '') return new Fraction(0n);
+        const parts = s.split('/');
+        if (parts.length > 2) return null;
+        const a = parseDecimal(parts[0]);
+        if (!a) return null;
+        if (parts.length === 1) return a;
+        const b = parseDecimal(parts[1]);
+        if (!b || b.isZero()) return null;
+        return a.div(b);
+    }
+
+    // ---------- Giao diện nhập ma trận ----------
+    const cell = (i, j) => $(`mxCell_${i}_${j}`);
+
+    function renderGrid(n, keep) {
+        const grid = $('mxGrid');
+        grid.style.gridTemplateColumns = `repeat(${n}, auto)`;
+        grid.innerHTML = '';
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `mxCell_${i}_${j}`;
+                input.className = 'mx-cell';
+                input.placeholder = '0';
+                input.maxLength = 12;
+                input.autocomplete = 'off';
+                input.setAttribute('aria-label', `Phần tử hàng ${i + 1}, cột ${j + 1}`);
+                if (keep && keep[i] && keep[i][j] !== undefined) input.value = keep[i][j];
+                input.addEventListener('focus', () => input.select());
+                input.addEventListener('input', () => input.classList.remove('mx-invalid'));
+                input.addEventListener('keydown', (e) => onCellKey(e, i, j, n));
+                grid.appendChild(input);
+            }
+        }
+    }
+
+    function onCellKey(e, r, c, n) {
+        const el = e.target;
+        let tr = r, tc = c;
+        switch (e.key) {
+            case 'ArrowRight':
+                if (el.selectionEnd !== el.value.length) return;
+                tc = (c + 1) % n; break;
+            case 'ArrowLeft':
+                if (el.selectionStart !== 0) return;
+                tc = (c - 1 + n) % n; break;
+            case 'ArrowDown': tr = (r + 1) % n; break;
+            case 'ArrowUp': tr = (r - 1 + n) % n; break;
+            case 'Enter':
+                if (r === n - 1 && c === n - 1) { e.preventDefault(); calculate(); return; }
+                tc = (c + 1) % n;
+                if (tc === 0) tr = (r + 1) % n;
+                break;
+            default: return;
+        }
+        e.preventDefault();
+        const next = cell(tr, tc);
+        if (next) next.focus();
+    }
+
+    function changeDimension(n) {
+        n = Math.max(1, Math.min(MAX_N, parseInt(n, 10) || 3));
+        // Giữ lại các giá trị đã nhập khi đổi cỡ ma trận
+        const keep = [];
+        for (let i = 0; i < Math.min(dim, n); i++) {
+            keep[i] = [];
+            for (let j = 0; j < Math.min(dim, n); j++) {
+                const el = cell(i, j);
+                keep[i][j] = el ? el.value : '';
+            }
+        }
+        dim = n;
+        $('mxDimInput').value = n;
+        document.querySelectorAll('#mxPresets .mx-preset').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.n, 10) === n);
+        });
+        renderGrid(n, keep);
+    }
+
+    function clearMatrix() {
+        for (let i = 0; i < dim; i++) for (let j = 0; j < dim; j++) {
+            const el = cell(i, j);
+            el.value = '';
+            el.classList.remove('mx-invalid');
+        }
+        showToast('Đã xóa dữ liệu ma trận');
+    }
+
+    function fillRandom() {
+        for (let i = 0; i < dim; i++) for (let j = 0; j < dim; j++) {
+            const el = cell(i, j);
+            el.value = Math.floor(Math.random() * 19) - 9; // -9 ... 9
+            el.classList.remove('mx-invalid');
+        }
+        showToast('Đã điền ma trận ngẫu nhiên');
+    }
+
+    function fillIdentity() {
+        for (let i = 0; i < dim; i++) for (let j = 0; j < dim; j++) {
+            const el = cell(i, j);
+            el.value = (i === j) ? '1' : '0';
+            el.classList.remove('mx-invalid');
+        }
+        showToast('Đã khởi tạo ma trận đơn vị');
+    }
+
+    // Đọc ma trận từ lưới nhập; ô sai định dạng được đánh dấu đỏ thay vì bị coi là 0
+    function readMatrix() {
+        const matrix = [];
+        const bad = [];
+        for (let i = 0; i < dim; i++) {
+            const row = [];
+            for (let j = 0; j < dim; j++) {
+                const el = cell(i, j);
+                const f = parseCell(el.value);
+                if (f === null) {
+                    bad.push(`(${i + 1}, ${j + 1})`);
+                    el.classList.add('mx-invalid');
+                    row.push(new Fraction(0n));
+                } else {
+                    el.classList.remove('mx-invalid');
+                    row.push(f);
+                }
+            }
+            matrix.push(row);
+        }
+        return { matrix, bad };
+    }
+
+    function matrixToTex(matrix) {
+        const rows = matrix.map(r => r.map(f => f.toTex()).join(' & '));
+        return `\\begin{pmatrix}${rows.join(' \\\\ ')}\\end{pmatrix}`;
+    }
+
+    // ---------- Các phương pháp giải ----------
+    function solveSarrus(matrix) {
+        const steps = [];
+        steps.push(`<strong>Áp dụng Quy tắc Sarrus cho ma trận 3x3:</strong>`);
+        steps.push(`Ma trận $A = ${matrixToTex(matrix)}$`);
+
+        const [a, b, c] = matrix[0], [d, e, f] = matrix[1], [g, h, i] = matrix[2];
+        const p1 = a.mul(e).mul(i), p2 = b.mul(f).mul(g), p3 = c.mul(d).mul(h);
+        const m1 = c.mul(e).mul(g), m2 = a.mul(f).mul(h), m3 = b.mul(d).mul(i);
+        const posSum = p1.add(p2).add(p3);
+        const negSum = m1.add(m2).add(m3);
+        const result = posSum.sub(negSum);
+
+        steps.push(`<strong>Cộng 3 tích đường chéo chính (chiều xuôi):</strong><br>
+            $$P = (${a.toTexFactor()} \\cdot ${e.toTexFactor()} \\cdot ${i.toTexFactor()}) + (${b.toTexFactor()} \\cdot ${f.toTexFactor()} \\cdot ${g.toTexFactor()}) + (${c.toTexFactor()} \\cdot ${d.toTexFactor()} \\cdot ${h.toTexFactor()})$$<br>
+            $$P = ${p1.toTex()} + ${p2.toTex()} + ${p3.toTex()} = ${posSum.toTex()}$$`);
+        steps.push(`<strong>Cộng 3 tích đường chéo phụ (chiều ngược):</strong><br>
+            $$N = (${c.toTexFactor()} \\cdot ${e.toTexFactor()} \\cdot ${g.toTexFactor()}) + (${a.toTexFactor()} \\cdot ${f.toTexFactor()} \\cdot ${h.toTexFactor()}) + (${b.toTexFactor()} \\cdot ${d.toTexFactor()} \\cdot ${i.toTexFactor()})$$<br>
+            $$N = ${m1.toTex()} + ${m2.toTex()} + ${m3.toTex()} = ${negSum.toTex()}$$`);
+        steps.push(`<strong>Tính Định Thức:</strong><br>
+            $$\\det(A) = P - N = ${posSum.toTex()} - (${negSum.toTex()}) = ${result.toTex()}$$`);
+        return { result, steps };
+    }
+
+    function solveGauss(matrix) {
+        const steps = [];
+        const n = matrix.length;
+        const A = matrix.map(row => row.slice());
+
+        steps.push(`<strong>Sử dụng thuật toán Khử Gauss (đưa về dạng tam giác trên):</strong>`);
+        steps.push(`Ma trận ban đầu $A = ${matrixToTex(A)}$`);
+
+        let swapCount = 0;
+        for (let i = 0; i < n; i++) {
+            let pivotRow = i;
+            while (pivotRow < n && A[pivotRow][i].isZero()) pivotRow++;
+
+            if (pivotRow === n) {
+                steps.push(`Cột ${i + 1} (từ dòng ${i + 1} trở xuống) toàn số 0 nên định thức bằng 0.`);
+                steps.push(`$$\\det(A) = 0$$`);
+                return { result: new Fraction(0n), steps };
+            }
+
+            if (pivotRow !== i) {
+                [A[i], A[pivotRow]] = [A[pivotRow], A[i]];
+                swapCount++;
+                steps.push(`<strong>Đổi chỗ Dòng ${i + 1} và Dòng ${pivotRow + 1}:</strong> (định thức đổi dấu - nhân thêm $-1$)<br>
+                    $$A \\rightarrow ${matrixToTex(A)}$$`);
+            }
+
+            for (let j = i + 1; j < n; j++) {
+                if (A[j][i].isZero()) continue;
+                const factor = A[j][i].div(A[i][i]);
+                for (let k = i; k < n; k++) {
+                    A[j][k] = A[j][k].sub(factor.mul(A[i][k]));
+                }
+                steps.push(`<strong>Biến đổi: $d_{${j + 1}} \\rightarrow d_{${j + 1}} - (${factor.toTex()}) \\cdot d_{${i + 1}}$:</strong><br>
+                    $$A \\rightarrow ${matrixToTex(A)}$$`);
+            }
+        }
+
+        let diagProduct = new Fraction(1n);
+        const diagTerms = [];
+        for (let i = 0; i < n; i++) {
+            diagProduct = diagProduct.mul(A[i][i]);
+            diagTerms.push(A[i][i].toTexFactor());
+        }
+        const result = (swapCount % 2 === 0) ? diagProduct : diagProduct.mul(new Fraction(-1n));
+
+        steps.push(`<strong>Ma trận đã về dạng tam giác trên.</strong><br>
+            Định thức bằng tích các phần tử trên đường chéo chính${swapCount > 0 ? ` nhân với $(-1)^{${swapCount}}$ do đã đổi dòng ${swapCount} lần` : ''}:`);
+        steps.push(`$$\\det(A) = ${swapCount > 0 ? `(-1)^{${swapCount}} \\cdot ` : ''}(${diagTerms.join(' \\cdot ')}) = ${result.toTex()}$$`);
+        return { result, steps };
+    }
+
+    function laplaceRecursive(mat) {
+        const size = mat.length;
+        if (size === 1) return mat[0][0];
+        if (size === 2) return mat[0][0].mul(mat[1][1]).sub(mat[0][1].mul(mat[1][0]));
+        let det = new Fraction(0n);
+        for (let j = 0; j < size; j++) {
+            const elem = mat[0][j];
+            if (elem.isZero()) continue;
+            const minor = mat.slice(1).map(row => row.filter((_, c) => c !== j));
+            const term = elem.mul(laplaceRecursive(minor));
+            det = (j % 2 === 0) ? det.add(term) : det.sub(term);
+        }
+        return det;
+    }
+
+    function solveLaplace(matrix) {
+        const steps = [];
+        const n = matrix.length;
+        steps.push(`<strong>Sử dụng Khai triển Laplace theo Dòng 1:</strong>`);
+        steps.push(`Ma trận $A = ${matrixToTex(matrix)}$`);
+
+        const termsTex = [];
+        let total = new Fraction(0n);
+
+        for (let j = 0; j < n; j++) {
+            const elem = matrix[0][j];
+            const sign = (j % 2 === 0) ? 1 : -1;
+            const submat = matrix.slice(1).map(row => row.filter((_, c) => c !== j));
+            const subDet = laplaceRecursive(submat);
+            const termVal = elem.mul(subDet);
+            total = (sign === 1) ? total.add(termVal) : total.sub(termVal);
+
+            steps.push(`<strong>Phần tử $a_{1,${j + 1}} = ${elem.toTex()}$:</strong><br>
+                Phần bù đại số $C_{1,${j + 1}} = (-1)^{1+${j + 1}} \\cdot \\det${matrixToTex(submat)} = ${sign === 1 ? '' : '-'}(${subDet.toTex()})$`);
+            termsTex.push(`(${sign === 1 ? '+' : '-'} ${elem.toTexFactor()} \\cdot (${subDet.toTex()}))`);
+        }
+
+        steps.push(`<strong>Tổng hợp khai triển Laplace:</strong><br>
+            $$\\det(A) = ${termsTex.join(' ')} = ${total.toTex()}$$`);
+        return { result: total, steps };
+    }
+
+    // ---------- Điều phối tính toán & hiển thị kết quả ----------
+    function calculate() {
+        const stepsOutput = $('stepsOutputMx');
+        const { matrix, bad } = readMatrix();
+
+        if (bad.length > 0) {
+            lastStepsText = '';
+            $('mxResultValue').textContent = '--';
+            $('mxResultFraction').textContent = '';
+            $('mxTypeTag').textContent = '⚠️ Có ô nhập không hợp lệ';
+            stepsOutput.innerHTML = `<div class="mx-error">⚠️ Các ô sau không phải số hợp lệ (chỉ nhận số nguyên, thập phân hoặc phân số dạng a/b với b ≠ 0): <b>${bad.join(', ')}</b>.<br>Vui lòng sửa các ô được đánh dấu đỏ rồi tính lại.</div>`;
+            showToast('Có ' + bad.length + ' ô nhập không hợp lệ!');
+            return;
+        }
+
+        const method = $('mxMethod').value;
+        let result, steps;
+
+        try {
+            if (dim === 1) {
+                result = matrix[0][0];
+                steps = [
+                    `<strong>Ma trận cấp 1x1:</strong> Định thức bằng chính phần tử duy nhất.`,
+                    `$$\\det(A) = ${result.toTex()}$$`
+                ];
+            } else if (dim === 2) {
+                const [[a, b], [c, d]] = matrix;
+                const ad = a.mul(d), bc = b.mul(c);
+                result = ad.sub(bc);
+                steps = [
+                    `<strong>Công thức ma trận 2x2:</strong> $$\\det(A) = a_{11}a_{22} - a_{12}a_{21}$$`,
+                    `$$\\det(A) = (${a.toTex()}) \\cdot (${d.toTex()}) - (${b.toTex()}) \\cdot (${c.toTex()})$$`,
+                    `$$\\det(A) = ${ad.toTex()} - (${bc.toTex()}) = ${result.toTex()}$$`
+                ];
+            } else {
+                let chosen = method;
+                if (method === 'auto') {
+                    chosen = (dim === 3) ? 'sarrus' : 'gauss';
+                } else if (method === 'sarrus' && dim !== 3) {
+                    showToast('Quy tắc Sarrus chỉ áp dụng cho ma trận 3x3! Đã tự động chuyển sang Khử Gauss.');
+                    chosen = 'gauss';
+                } else if (method === 'laplace' && dim > LAPLACE_MAX_N) {
+                    showToast(`Khai triển Laplace chỉ hỗ trợ tới n = ${LAPLACE_MAX_N} (độ phức tạp n!). Đã chuyển sang Khử Gauss.`);
+                    chosen = 'gauss';
+                }
+                const res = chosen === 'sarrus' ? solveSarrus(matrix)
+                          : chosen === 'laplace' ? solveLaplace(matrix)
+                          : solveGauss(matrix);
+                result = res.result;
+                steps = res.steps;
+            }
+        } catch (err) {
+            console.error(err);
+            lastStepsText = '';
+            stepsOutput.innerHTML = `<div class="mx-error">⚠️ Lỗi tính toán: ${String(err.message).replace(/[<>&]/g, '')}</div>`;
+            return;
+        }
+
+        // Giá trị chính
+        const approx = result.toNumber();
+        if (result.den === 1n) {
+            $('mxResultValue').textContent = result.num.toLocaleString('vi-VN');
+            $('mxResultFraction').textContent = '';
+        } else {
+            $('mxResultValue').textContent = Number.isFinite(approx)
+                ? approx.toLocaleString('vi-VN', { maximumFractionDigits: 6 })
+                : result.toString();
+            $('mxResultFraction').textContent = `= ${result.toString()}`;
+        }
+        $('mxTypeTag').textContent = result.isZero()
+            ? '⚠️ Ma trận suy biến (det = 0)'
+            : '✅ Ma trận khả nghịch (det ≠ 0)';
+
+        // Lời giải từng bước
+        stepsOutput.innerHTML = steps.map(s => `<div class="mx-step">${s}</div>`).join('');
+        lastStepsText = steps
+            .map(s => s.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n').trim())
+            .join('\n\n');
+        typeset(stepsOutput);
+    }
+
+    // ---------- MathJax (chỉ tải khi mở công cụ lần đầu) ----------
+    function ensureMathJax() {
+        if (window.MathJax && window.MathJax.typesetPromise) return Promise.resolve(window.MathJax);
+        if (mathJaxPromise) return mathJaxPromise;
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: { typeset: false } // chỉ render trong vùng của công cụ, không đụng tới phần còn lại của trang
+        };
+        mathJaxPromise = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = MATHJAX_SRC;
+            s.async = true;
+            s.onload = () => {
+                const ready = (window.MathJax.startup && window.MathJax.startup.promise) || Promise.resolve();
+                ready.then(() => resolve(window.MathJax), reject);
+            };
+            s.onerror = () => { mathJaxPromise = null; reject(new Error('MathJax load failed')); };
+            document.head.appendChild(s);
+        });
+        return mathJaxPromise;
+    }
+
+    function typeset(el) {
+        typesetChain = typesetChain
+            .then(() => ensureMathJax())
+            .then(MJ => MJ.typesetPromise([el]))
+            .catch(() => {
+                if (!mathJaxWarned) {
+                    mathJaxWarned = true;
+                    showToast('Không tải được thư viện hiển thị công thức (cần kết nối Internet).');
+                }
+            });
+        return typesetChain;
+    }
+
+    // ---------- Tiện ích ----------
+    function copySteps() {
+        if (!lastStepsText) { showToast('Chưa có lời giải để sao chép. Hãy bấm "Tính Định Thức" trước.'); return; }
+        const ok = () => showToast('Đã sao chép lời giải (công thức dạng LaTeX) vào bộ nhớ tạm!');
+        const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = lastStepsText;
+            ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); ok(); } catch (e) { showToast('Không sao chép được, hãy thử lại.'); }
+            document.body.removeChild(ta);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(lastStepsText).then(ok, fallback);
+        } else { fallback(); }
+    }
+
+    function showToast(msg) {
+        const toast = $('mxToast');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ---------- Mở / đóng workspace ----------
+    function openMatrixWorkspace() {
+        toggleMainElements(false);
+        $('matrixWorkspace').style.display = 'block';
+        if (!guideTypeset) { guideTypeset = true; typeset($('mxGuide')); }
+        const first = cell(0, 0);
+        if (first) first.focus();
+    }
+
+    function closeMatrixWorkspace() {
+        toggleMainElements(true);
+        $('matrixWorkspace').style.display = 'none';
+    }
+
+    window.openMatrixWorkspace = openMatrixWorkspace;
+    window.closeMatrixWorkspace = closeMatrixWorkspace;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!$('matrixWorkspace')) return;
+        renderGrid(dim);
+        document.querySelectorAll('#mxPresets .mx-preset').forEach(btn => {
+            btn.addEventListener('click', () => changeDimension(btn.dataset.n));
+        });
+        $('mxDimInput').addEventListener('change', (e) => changeDimension(e.target.value));
+        $('mxRandomBtn').addEventListener('click', fillRandom);
+        $('mxIdentityBtn').addEventListener('click', fillIdentity);
+        $('mxClearBtn').addEventListener('click', clearMatrix);
+        $('mxCalcBtn').addEventListener('click', calculate);
+        $('mxCopyBtn').addEventListener('click', copySteps);
+        $('mxCloseBtn').addEventListener('click', closeMatrixWorkspace);
+    });
+})();

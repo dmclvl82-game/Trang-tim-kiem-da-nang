@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniSearchVN</title>
-    <link rel="stylesheet" href="style.css?v=24i">
+    <link rel="stylesheet" href="style.css?v=24j">
     <!-- Thư viện Kéo thả SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
@@ -253,7 +253,103 @@
         </div>
     </div>
 
-    <script src="script.js?v=24i"></script>
+    <!-- Workspace Tính Định Thức Ma Trận -->
+    <div id="matrixWorkspace">
+        <div class="mx-header">
+            <h2>🔢 Tính Định Thức Ma Trận</h2>
+            <button class="logout-btn" id="mxCloseBtn">✕ Đóng</button>
+        </div>
+        <p class="mx-subtitle">Giải định thức ma trận vuông cấp n × n (n ≤ 10) kèm lời giải từng bước, hỗ trợ phân số.</p>
+
+        <div class="mx-layout">
+            <!-- Cột trái: nhập liệu -->
+            <div class="mx-col">
+                <section class="mx-card">
+                    <h3>Kích thước ma trận (n × n)</h3>
+                    <div class="mx-presets" id="mxPresets">
+                        <button type="button" class="mx-preset" data-n="1">1x1</button>
+                        <button type="button" class="mx-preset" data-n="2">2x2</button>
+                        <button type="button" class="mx-preset active" data-n="3">3x3</button>
+                        <button type="button" class="mx-preset" data-n="4">4x4</button>
+                        <button type="button" class="mx-preset" data-n="5">5x5</button>
+                    </div>
+                    <div class="mx-dim-row">
+                        <label for="mxDimInput">Tùy chỉnh n:</label>
+                        <input type="number" id="mxDimInput" min="1" max="10" value="3">
+                        <span class="mx-hint">(Tối đa n = 10)</span>
+                    </div>
+                </section>
+
+                <section class="mx-card">
+                    <div class="mx-card-head">
+                        <h3>Nhập ma trận A</h3>
+                        <span class="mx-hint">Nhận số nguyên, thập phân, phân số (VD: 1/2)</span>
+                    </div>
+                    <div class="mx-grid-wrap">
+                        <div id="mxGrid" class="mx-grid"></div>
+                    </div>
+                    <div class="mx-actions">
+                        <button type="button" class="mx-tool" id="mxRandomBtn">🎲 Ngẫu nhiên</button>
+                        <button type="button" class="mx-tool" id="mxIdentityBtn">▦ Đơn vị (I)</button>
+                        <button type="button" class="mx-tool mx-tool-danger" id="mxClearBtn">↺ Xóa hết</button>
+                    </div>
+                    <label class="mx-label" for="mxMethod">Phương pháp giải:</label>
+                    <select id="mxMethod" class="mx-select">
+                        <option value="auto">Tự động (Khuyên dùng)</option>
+                        <option value="gauss">Khử Gauss (Dạng tam giác)</option>
+                        <option value="laplace">Khai triển Laplace (Theo dòng 1)</option>
+                        <option value="sarrus">Quy tắc Sarrus (Chỉ dành cho 3x3)</option>
+                    </select>
+                    <button type="button" class="mx-calc-btn" id="mxCalcBtn">🧮 Tính Định Thức det(A)</button>
+                </section>
+            </div>
+
+            <!-- Cột phải: kết quả -->
+            <div class="mx-col">
+                <div class="mx-result">
+                    <p class="mx-result-label">Kết quả định thức</p>
+                    <div class="mx-result-row">
+                        <span class="mx-result-value" id="mxResultValue">--</span>
+                        <span class="mx-result-fraction" id="mxResultFraction"></span>
+                    </div>
+                    <p class="mx-result-tag" id="mxTypeTag">ℹ️ Nhấn "Tính Định Thức" để xem chi tiết</p>
+                </div>
+
+                <section class="mx-card mx-steps-card">
+                    <div class="mx-card-head">
+                        <h3>📋 Các bước giải chi tiết</h3>
+                        <button type="button" class="mx-copy" id="mxCopyBtn">📄 Sao chép</button>
+                    </div>
+                    <div id="stepsOutputMx" class="mx-steps">
+                        <div class="mx-empty">Nhập các phần tử ma trận rồi bấm <b>Tính Định Thức</b> để hiển thị từng bước giải.</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <details class="mx-guide" id="mxGuide">
+            <summary>📖 Các phương pháp tính định thức phổ biến</summary>
+            <div class="mx-guide-grid">
+                <div class="mx-guide-item">
+                    <h4>1. Ma trận 2×2 &amp; 3×3</h4>
+                    <p><b>2x2:</b> $\det = ad - bc$</p>
+                    <p><b>3x3 (Quy tắc Sarrus):</b> Cộng tích 3 đường chéo chính và trừ tích 3 đường chéo phụ.</p>
+                </div>
+                <div class="mx-guide-item">
+                    <h4>2. Khử Gauss</h4>
+                    <p>Dùng các phép biến đổi sơ cấp theo dòng để đưa ma trận về <b>dạng tam giác trên</b>. Định thức bằng tích các phần tử trên đường chéo chính nhân với $(-1)^k$ ($k$ là số lần đổi dòng).</p>
+                </div>
+                <div class="mx-guide-item">
+                    <h4>3. Khai triển Laplace</h4>
+                    <p>Khai triển theo một dòng hoặc cột bất kỳ thông qua các phần bù đại số:</p>
+                    <p>$$\det(A) = \sum_{j=1}^n a_{ij} (-1)^{i+j} M_{ij}$$</p>
+                </div>
+            </div>
+        </details>
+    </div>
+    <div class="mx-toast" id="mxToast" role="status" aria-live="polite"></div>
+
+    <script src="script.js?v=24j"></script>
     <!-- Chữ ký chìm -->
     <div class="stealth-signature">Designed & Developed by Hồ Hiếu Nghĩa</div>
 
