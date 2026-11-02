@@ -253,101 +253,53 @@
         </div>
     </div>
 
-    <!-- Workspace Tính Định Thức Ma Trận -->
-    <div id="matrixWorkspace">
-        <div class="mx-header">
-            <h2>🔢 Tính Định Thức Ma Trận</h2>
-            <button class="logout-btn" id="mxCloseBtn">✕ Đóng</button>
-        </div>
-        <p class="mx-subtitle">Giải định thức ma trận vuông cấp n × n (n ≤ 10) kèm lời giải từng bước, hỗ trợ phân số.</p>
-
-        <div class="mx-layout">
-            <!-- Cột trái: nhập liệu -->
-            <div class="mx-col">
-                <section class="mx-card">
-                    <h3>Kích thước ma trận (n × n)</h3>
-                    <div class="mx-presets" id="mxPresets">
-                        <button type="button" class="mx-preset" data-n="1">1x1</button>
-                        <button type="button" class="mx-preset" data-n="2">2x2</button>
-                        <button type="button" class="mx-preset active" data-n="3">3x3</button>
-                        <button type="button" class="mx-preset" data-n="4">4x4</button>
-                        <button type="button" class="mx-preset" data-n="5">5x5</button>
-                    </div>
-                    <div class="mx-dim-row">
-                        <label for="mxDimInput">Tùy chỉnh n:</label>
-                        <input type="number" id="mxDimInput" min="1" max="10" value="3">
-                        <span class="mx-hint">(Tối đa n = 10)</span>
-                    </div>
-                </section>
-
-                <section class="mx-card">
-                    <div class="mx-card-head">
-                        <h3>Nhập ma trận A</h3>
-                        <span class="mx-hint">Nhận số nguyên, thập phân, phân số (VD: 1/2)</span>
-                    </div>
-                    <div class="mx-grid-wrap">
-                        <div id="mxGrid" class="mx-grid"></div>
-                    </div>
-                    <div class="mx-actions">
-                        <button type="button" class="mx-tool" id="mxRandomBtn">🎲 Ngẫu nhiên</button>
-                        <button type="button" class="mx-tool" id="mxIdentityBtn">▦ Đơn vị (I)</button>
-                        <button type="button" class="mx-tool mx-tool-danger" id="mxClearBtn">↺ Xóa hết</button>
-                    </div>
-                    <label class="mx-label" for="mxMethod">Phương pháp giải:</label>
-                    <select id="mxMethod" class="mx-select">
-                        <option value="auto">Tự động (Khuyên dùng)</option>
-                        <option value="gauss">Khử Gauss (Dạng tam giác)</option>
-                        <option value="laplace">Khai triển Laplace (Theo dòng 1)</option>
-                        <option value="sarrus">Quy tắc Sarrus (Chỉ dành cho 3x3)</option>
-                    </select>
-                    <button type="button" class="mx-calc-btn" id="mxCalcBtn">🧮 Tính Định Thức det(A)</button>
-                </section>
+    <!-- Workspace C++ Code Repository -->
+    <div id="cppWorkspace">
+        <div class="cpp-topbar">
+            <div>
+                <h2 class="cpp-heading">💻 C++ Code Repository</h2>
+                <p class="cpp-sub">Tài liệu &amp; Lời giải 5 Chương CSLT</p>
             </div>
-
-            <!-- Cột phải: kết quả -->
-            <div class="mx-col">
-                <div class="mx-result">
-                    <p class="mx-result-label">Kết quả định thức</p>
-                    <div class="mx-result-row">
-                        <span class="mx-result-value" id="mxResultValue">--</span>
-                        <span class="mx-result-fraction" id="mxResultFraction"></span>
-                    </div>
-                    <p class="mx-result-tag" id="mxTypeTag">ℹ️ Nhấn "Tính Định Thức" để xem chi tiết</p>
-                </div>
-
-                <section class="mx-card mx-steps-card">
-                    <div class="mx-card-head">
-                        <h3>📋 Các bước giải chi tiết</h3>
-                        <button type="button" class="mx-copy" id="mxCopyBtn">📄 Sao chép</button>
-                    </div>
-                    <div id="stepsOutputMx" class="mx-steps">
-                        <div class="mx-empty">Nhập các phần tử ma trận rồi bấm <b>Tính Định Thức</b> để hiển thị từng bước giải.</div>
-                    </div>
-                </section>
-            </div>
+            <button class="logout-btn" onclick="closeCppWorkspace()">✕ Đóng</button>
         </div>
 
-        <details class="mx-guide" id="mxGuide">
-            <summary>📖 Các phương pháp tính định thức phổ biến</summary>
-            <div class="mx-guide-grid">
-                <div class="mx-guide-item">
-                    <h4>1. Ma trận 2×2 &amp; 3×3</h4>
-                    <p><b>2x2:</b> $\det = ad - bc$</p>
-                    <p><b>3x3 (Quy tắc Sarrus):</b> Cộng tích 3 đường chéo chính và trừ tích 3 đường chéo phụ.</p>
+        <div class="cpp-layout">
+            <aside class="cpp-sidebar">
+                <input type="text" id="cppSearchInput" class="auth-input cpp-search" placeholder="Tìm kiếm bài tập..." oninput="handleCppSearch(this.value)">
+                <div class="cpp-chips" id="cppChapterFilters"></div>
+                <div class="cpp-list-head"><span>DANH SÁCH BÀI TẬP</span><span class="cpp-count" id="cppCount">0</span></div>
+                <div class="cpp-list" id="cppExerciseList"></div>
+            </aside>
+
+            <section class="cpp-detail" id="cppDetail">
+                <div class="cpp-card">
+                    <span class="cpp-badge" id="cppChapterBadge"></span>
+                    <h3 class="cpp-title" id="cppTitle"></h3>
+                    <h4 class="cpp-label">Đề bài</h4>
+                    <p class="cpp-text" id="cppDesc"></p>
+                    <div class="cpp-algo">
+                        <h4 class="cpp-label cpp-label-accent">✨ Tư duy &amp; Giải thuật</h4>
+                        <p class="cpp-text cpp-small" id="cppAlgo"></p>
+                    </div>
                 </div>
-                <div class="mx-guide-item">
-                    <h4>2. Khử Gauss</h4>
-                    <p>Dùng các phép biến đổi sơ cấp theo dòng để đưa ma trận về <b>dạng tam giác trên</b>. Định thức bằng tích các phần tử trên đường chéo chính nhân với $(-1)^k$ ($k$ là số lần đổi dòng).</p>
+
+                <div class="cpp-codebox">
+                    <div class="cpp-codebar">
+                        <span class="cpp-dots"><i></i><i></i><i></i></span>
+                        <span class="cpp-filename">solution.cpp</span>
+                        <button class="cpp-copy" id="cppCopyBtn" onclick="copyCppCode()">📋 Copy Code</button>
+                    </div>
+                    <pre class="cpp-pre"><code id="cppCode"></code></pre>
                 </div>
-                <div class="mx-guide-item">
-                    <h4>3. Khai triển Laplace</h4>
-                    <p>Khai triển theo một dòng hoặc cột bất kỳ thông qua các phần bù đại số:</p>
-                    <p>$$\det(A) = \sum_{j=1}^n a_{ij} (-1)^{i+j} M_{ij}$$</p>
+
+                <div class="cpp-card">
+                    <h4 class="cpp-sim-title">🖥️ Mô phỏng kết quả chạy</h4>
+                    <div class="cpp-fields" id="cppFields"></div>
+                    <pre class="cpp-output" id="cppOutput"></pre>
                 </div>
-            </div>
-        </details>
+            </section>
+        </div>
     </div>
-    <div class="mx-toast" id="mxToast" role="status" aria-live="polite"></div>
 
     <script src="script.js?v=24j"></script>
     <!-- Chữ ký chìm -->
@@ -363,31 +315,5 @@
 
 </body>
 </html>
-<!-- Workspace C++ Code Repository -->
-    <div id="cppWorkspace">
-        <div style="display: flex; justify-content: space-between; align- items: center; margin-bottom: 15px;">
-            <h2 style="color: #00599C; margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">
-                💻 C++ Code Repository & Bài Tập CSLT
-            </h2>
-            <button class="logout-btn" onclick="closeCppWorkspace()">✕ Đóng</button>
-        </div>
 
-        <!-- Thanh tìm kiếm & lọc chương -->
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-            <input type="text" id="cppSearchInput" placeholder="Tìm kiếm bài tập hoặc từ khóa..." class="auth-input" style="flex: 1; margin-bottom: 0;" oninput="filterCppExercises()">
-            <select id="cppChapterSelect" class="cam-select" style="width: auto; margin-bottom: 0;" onchange="filterCppExercises()">
-                <option value="all">Tất cả các chương</option>
-                <option value="Chương 1">Chương 1: Giới thiệu C/C++</option>
-                <option value="Chương 2">Chương 2: Rẽ nhánh & Lặp</option>
-                <option value="Chương 3">Chương 3: Chương trình con</option>
-                <option value="Chương 4">Chương 4: Mảng & Chuỗi</option>
-                <option value="Chương 5">Chương 5: Kiểu dữ liệu có cấu trúc</option>
-            </select>
-        </div>
-
-        <!-- Danh sách bài tập -->
-        <div id="cppExercisesList" style="display: flex; flex-direction: column; gap: 12px; max-height: 500px; overflow-y: auto; text-align: left;">
-            <!-- Nội dung bài tập sẽ được tự động render bằng JS -->
-        </div>
-    </div>
 
