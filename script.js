@@ -13,17 +13,19 @@ const defaultEngines = [
     { id: 'chatgpt', name: 'ChatGPT', color: '#10a37f', borderColor: '#10a37f', type: 'builtin', url: 'https://chatgpt.com' },
     { id: 'notes', name: 'Note (Ghi chú)', color: '#f59e0b', borderColor: '#f59e0b', type: 'builtin', url: 'notes' },
     { id: 'camera', name: 'Camera', color: '#6366f1', borderColor: '#6366f1', type: 'builtin', url: 'camera' },
-    { id: 'matrix', name: 'Định thức (Ma trận)', color: '#7c3aed', borderColor: '#7c3aed', type: 'builtin', url: 'matrix' }
+    { id: 'matrix', name: 'Định thức (Ma trận)', color: '#7c3aed', borderColor: '#7c3aed', type: 'builtin', url: 'matrix' },
+    { id: 'cpp', name: 'Học C++', color: '#2563eb', borderColor: '#2563eb', type: 'builtin', url: 'cpp' }
 ]; 
 
 // Các nút hệ thống (mở workspace riêng, không thể xóa)
-const SYSTEM_ENGINE_IDS = ['notes', 'camera', 'matrix'];
+const SYSTEM_ENGINE_IDS = ['notes', 'camera', 'matrix', 'cpp'];
 
 function getEngines() {
     const stored = localStorage.getItem('searchEngines');
     if (stored) {
         try {
             const list = JSON.parse(stored);
+            // Người dùng cũ đã lưu danh sách nút: tự bổ sung các nút hệ thống mới (vd: Định thức)
             defaultEngines.forEach(d => {
                 if (SYSTEM_ENGINE_IDS.includes(d.id) && !list.some(e => e.id === d.id)) list.push({ ...d });
             });
@@ -140,9 +142,13 @@ function closeNotesWorkspace() {
 function addDraftChecklistItem() {
     const input = document.getElementById('wsNewItemInput');
     const val = input.value.trim();
-    if (!val) { input.focus(); return; }
+    if (!val) {
+        input.focus();
+        return;
+    }
     draftChecklistItems.push({ text: val, checked: false });
-    input.value = ''; input.focus();
+    input.value = '';
+    input.focus();
     renderDraftChecklist();
 }
 
@@ -154,10 +160,12 @@ function removeDraftChecklistItem(index) {
 function renderDraftChecklist() {
     const container = document.getElementById('wsDraftItemsContainer');
     if (!container) return;
+    
     if (draftChecklistItems.length === 0) {
         container.innerHTML = '<span style="font-size: 12px; color: #9aa0a6; font-style: italic;">Chưa có mục việc nào được thêm vào danh sách nháp.</span>';
         return;
     }
+
     container.innerHTML = '';
     draftChecklistItems.forEach((item, index) => {
         const div = document.createElement('div');
@@ -170,15 +178,27 @@ function renderDraftChecklist() {
 function saveWorkspaceNote() {
     const titleInput = document.getElementById('wsNoteTitle');
     const title = titleInput.value.trim();
-    if (!title && draftChecklistItems.length === 0) { alert('Vui lòng nhập tiêu đề hoặc thêm ít nhất một mục checklist!'); return; }
+    
+    if (!title && draftChecklistItems.length === 0) { 
+        alert('Vui lòng nhập tiêu đề hoặc thêm ít nhất một mục checklist!'); 
+        return; 
+    }
     
     let notes = JSON.parse(localStorage.getItem(getNotesStorageKey()) || '[]');
-    notes.unshift({ id: 'note_' + Date.now(), title: title || 'Danh sách công việc', items: [...draftChecklistItems], date: new Date().toLocaleString('vi-VN') });
+    notes.unshift({ 
+        id: 'note_' + Date.now(), 
+        title: title || 'Danh sách công việc', 
+        items: [...draftChecklistItems], 
+        date: new Date().toLocaleString('vi-VN') 
+    });
     localStorage.setItem(getNotesStorageKey(), JSON.stringify(notes));
     
-    titleInput.value = ''; document.getElementById('wsNewItemInput').value = '';
+    // Reset form
+    titleInput.value = ''; 
+    document.getElementById('wsNewItemInput').value = '';
     draftChecklistItems = [];
-    renderDraftChecklist(); renderWorkspaceNotesList();
+    renderDraftChecklist();
+    renderWorkspaceNotesList();
 }
 
 function deleteWorkspaceNote(id) {
@@ -207,6 +227,7 @@ function renderWorkspaceNotesList() {
     notes.forEach(note => {
         const item = document.createElement('div');
         item.style.cssText = 'padding: 12px; background: rgba(0,0,0,0.03); border-radius: 8px; border: 1px solid #dadce0; font-size: 13px;';
+        
         let itemsHtml = '';
         if (note.items && note.items.length > 0) {
             itemsHtml = '<div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">';
@@ -219,6 +240,7 @@ function renderWorkspaceNotesList() {
             });
             itemsHtml += '</div>';
         }
+
         item.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                 <strong style="color: #f59e0b; font-size: 14px;">${escapeHtml(note.title)}</strong>
@@ -232,7 +254,11 @@ function renderWorkspaceNotesList() {
 }
 
 // --- Workspace Camera ---
-let camStream = null, camFacingMode = 'user', mediaRecorder = null, recordedChunks = [], isRecording = false;
+let camStream = null;
+let camFacingMode = 'user';
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
 
 async function openCameraWorkspace() {
     toggleMainElements(false);
@@ -252,7 +278,9 @@ async function initCamStream(mode) {
     try {
         camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode }, audio: true });
         document.getElementById('camVideo').srcObject = camStream;
-    } catch (err) { alert("Không thể truy cập camera hoặc microphone!"); }
+    } catch (err) {
+        alert("Không thể truy cập camera hoặc microphone!");
+    }
 }
 
 function switchCamFacing() {
@@ -265,12 +293,16 @@ function applyCamFilter(filterVal) {
 }
 
 function captureCamImage() {
-    const video = document.getElementById('camVideo'), canvas = document.getElementById('camCanvas'), ctx = canvas.getContext('2d');
+    const video = document.getElementById('camVideo');
+    const canvas = document.getElementById('camCanvas');
+    const ctx = canvas.getContext('2d');
     canvas.width = video.videoWidth; canvas.height = video.videoHeight;
     ctx.filter = document.getElementById('camFilterSelect').value;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/png'), photoEl = document.getElementById('camPhoto'), dlPhotoEl = document.getElementById('camDownloadPhoto');
+    const dataUrl = canvas.toDataURL('image/png');
+    const photoEl = document.getElementById('camPhoto');
+    const dlPhotoEl = document.getElementById('camDownloadPhoto');
     photoEl.src = dataUrl; photoEl.style.display = 'block';
     dlPhotoEl.href = dataUrl; dlPhotoEl.style.display = 'block';
     document.getElementById('camResultArea').style.display = 'block';
@@ -280,22 +312,30 @@ function toggleCamRecord() {
     const recordBtn = document.getElementById('camRecordBtn');
     if (!isRecording) {
         recordedChunks = [];
-        try { mediaRecorder = new MediaRecorder(camStream, { mimeType: 'video/webm' }); } 
-        catch (e) { mediaRecorder = new MediaRecorder(camStream); }
+        try {
+            mediaRecorder = new MediaRecorder(camStream, { mimeType: 'video/webm' });
+        } catch (e) {
+            mediaRecorder = new MediaRecorder(camStream);
+        }
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.onstop = () => {
             const blob = new Blob(recordedChunks, { type: 'video/webm' });
             const videoURL = URL.createObjectURL(blob);
-            const recVideo = document.getElementById('camRecordedVideo'), dlVideo = document.getElementById('camDownloadVideo');
+            const recVideo = document.getElementById('camRecordedVideo');
+            const dlVideo = document.getElementById('camDownloadVideo');
             recVideo.src = videoURL; recVideo.style.display = 'block';
             dlVideo.href = videoURL; dlVideo.style.display = 'block';
             document.getElementById('camResultArea').style.display = 'block';
         };
-        mediaRecorder.start(); isRecording = true;
-        recordBtn.textContent = "Dừng Quay"; recordBtn.classList.add('recording');
+        mediaRecorder.start();
+        isRecording = true;
+        recordBtn.textContent = "Dừng Quay";
+        recordBtn.classList.add('recording');
     } else {
-        mediaRecorder.stop(); isRecording = false;
-        recordBtn.textContent = "Bắt Đầu Quay Video"; recordBtn.classList.remove('recording');
+        mediaRecorder.stop();
+        isRecording = false;
+        recordBtn.textContent = "Bắt Đầu Quay Video";
+        recordBtn.classList.remove('recording');
     }
 }
 
@@ -309,10 +349,14 @@ function toggleMainElements(show) {
     document.getElementById('cameraWorkspace').style.display = 'none';
     const matrixWs = document.getElementById('matrixWorkspace');
     if (matrixWs) matrixWs.style.display = 'none';
+    const cppWs = document.getElementById('cppWorkspace');
+    if (cppWs) cppWs.style.display = 'none';
 }
 
 // --- Tiện ích Đồng hồ & Thời tiết ---
-function initClockAndCalendar() { updateClock(); setInterval(updateClock, 1000); }
+function initClockAndCalendar() {
+    updateClock(); setInterval(updateClock, 1000);
+}
 function updateClock() {
     const now = new Date();
     const h = String(now.getHours()).padStart(2, '0'), m = String(now.getMinutes()).padStart(2, '0'), s = String(now.getSeconds()).padStart(2, '0');
@@ -385,8 +429,10 @@ async function fetchSuggestionsWithCache(query) {
 }
 
 function mergeAndRenderSuggestions(query, googleSugs) {
+    // Bỏ qua kết quả trả về trễ không còn khớp với nội dung đang gõ
     const currentQuery = document.getElementById('searchInput').value.trim().toLowerCase();
     if (currentQuery !== query) return;
+
     const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
     const matched = history.filter(item => item.toLowerCase().includes(query));
     const combined = [...new Set([...matched, ...googleSugs])];
@@ -417,17 +463,27 @@ function toggleSettings() {
     o.style.display = o.style.display === 'flex' ? 'none' : 'flex';
 }
 function handleBgUpload(e) {
-    const f = e.target.files[0]; if (!f) return;
+    const f = e.target.files[0];
+    if (!f) return;
     const r = new FileReader();
     r.onload = ev => { localStorage.setItem('bgImage', ev.target.result); applyBackgroundImage(ev.target.result); };
     r.readAsDataURL(f);
 }
 
+// Xử lý áp dụng hình nền từ đường dẫn URL
 function handleBgUrlApply() {
     const input = document.getElementById('bgUrlInput');
     const url = input.value.trim();
-    if (!url || !isValidHttpUrl(url)) { alert('Vui lòng nhập đường dẫn hình nền hợp lệ!'); input.focus(); return; }
-    localStorage.setItem('bgImage', url); applyBackgroundImage(url); input.value = '';
+    
+    if (!url || !isValidHttpUrl(url)) {
+        alert('Vui lòng nhập đường dẫn hình nền hợp lệ (bắt đầu bằng http:// hoặc https://)!');
+        input.focus();
+        return;
+    }
+    
+    localStorage.setItem('bgImage', url);
+    applyBackgroundImage(url);
+    input.value = '';
 }
 
 function applyBackgroundImage(url) {
@@ -459,7 +515,7 @@ function addSearchEngine() {
     const url = document.getElementById('customBtnUrl').value.trim();
     const color = document.getElementById('customBtnColor').value;
     if (!name || !url) { alert('Vui lòng nhập đầy đủ tên và đường dẫn!'); return; }
-    if (!isValidHttpUrl(url)) { alert('Đường dẫn không hợp lệ!'); return; }
+    if (!isValidHttpUrl(url)) { alert('Đường dẫn không hợp lệ! Vui lòng nhập URL bắt đầu bằng http:// hoặc https://'); return; }
     let engines = getEngines();
     engines.push({ id: 'eng_' + Date.now(), name, color, borderColor: color, type: 'custom', url });
     localStorage.setItem('searchEngines', JSON.stringify(engines));
@@ -552,6 +608,7 @@ function triggerDefaultSearch() {
     hideSuggestions();
     const engines = getEngines();
     let defaultId = localStorage.getItem('defaultEngine') || 'google';
+    // Nếu công cụ mặc định đã bị xóa khỏi danh sách, dùng công cụ đầu tiên còn lại thay thế
     if (!engines.find(e => e.id === defaultId)) {
         defaultId = engines.length > 0 ? engines[0].id : 'google';
     }
@@ -563,6 +620,7 @@ function performSearch(engineId) {
     if (engineId === 'notes') { openNotesWorkspace(); return; }
     if (engineId === 'camera') { openCameraWorkspace(); return; }
     if (engineId === 'matrix') { openMatrixWorkspace(); return; }
+    if (engineId === 'cpp') { openCppWorkspace(); return; }
 
     const query = document.getElementById('searchInput').value.trim();
     const engine = getEngines().find(e => e.id === engineId);
@@ -610,7 +668,6 @@ function renderHistory() {
     clearBtn.onclick = () => { localStorage.removeItem('searchHistory'); renderHistory(); };
     container.appendChild(clearBtn);
 }
-
 function removeHistory(item) {
     let h = JSON.parse(localStorage.getItem('searchHistory') || '[]').filter(i => i !== item);
     localStorage.setItem('searchHistory', JSON.stringify(h));
@@ -629,6 +686,7 @@ function handleGuestLogin() {
     document.getElementById('userInfo').style.display = 'flex';
     document.getElementById('currentUsername').textContent = 'Khách';
 }
+// Băm mật khẩu bằng SHA-256 trước khi lưu (tránh lưu plaintext trong localStorage)
 async function hashPassword(password) {
     const data = new TextEncoder().encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -643,7 +701,6 @@ async function handleRegister() {
     users[u] = await hashPassword(p); localStorage.setItem('users', JSON.stringify(users)); localStorage.setItem('currentUser', u);
     location.reload();
 }
-
 async function handleLogin() {
     const u = document.getElementById('authUsername').value.trim(), p = document.getElementById('authPassword').value.trim(), err = document.getElementById('authError');
     let users = JSON.parse(localStorage.getItem('users') || '{}');
@@ -655,12 +712,19 @@ function logout() { localStorage.removeItem('currentUser'); location.reload(); }
 function toggleTheme() {
     const checkbox = document.getElementById('themeToggleCheckbox');
     const isDark = checkbox.checked;
-    if (isDark) { document.body.classList.add('dark-mode'); } 
-    else { document.body.classList.remove('dark-mode'); }
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
+// Kiểm tra URL hợp lệ (chỉ chấp nhận http/https, chặn javascript: và các chuỗi không phải URL)
 function isValidHttpUrl(str) {
-    try { const u = new URL(str); return u.protocol === 'http:' || u.protocol === 'https:'; } catch (e) { return false; }
+    try {
+        const u = new URL(str);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch (e) { return false; }
 }
 
 function escapeHtml(str) {
@@ -670,39 +734,100 @@ function escapeHtml(str) {
 document.getElementById('searchInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') { hideSuggestions(); triggerDefaultSearch(); }
 });
-
 // ==========================================
-// THÔNG BÁO KHI NHẤP CHUỘT PHẢI HOẶC NHẤN GIỮ
+// THÔNG BÁO KHI NHẤP CHUỘT PHẢI HOẶC NHẤN GIỮ (MOBILE)
 // ==========================================
 let toastTimeout;
+
 function showRightClickToast() {
     const toast = document.getElementById('rightClickToast');
     if (!toast) return;
+
+    // Hiển thị thông báo
     toast.classList.add('show');
+
+    // Xóa bộ đếm thời gian cũ nếu thao tác liên tục
     clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 2500);
+
+    // Tự động ẩn sau 2.5 giây
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2500);
 }
 
-document.addEventListener('contextmenu', (e) => { showRightClickToast(); });
+// 1. Dành cho Máy tính (Click chuột phải)
+document.addEventListener('contextmenu', (e) => {
+    // Nếu muốn chặn menu chuột phải / menu chọn văn bản mặc định, mở comment dòng dưới:
+    // e.preventDefault(); 
+    showRightClickToast();
+});
 
+// 2. Dành cho Thiết bị di động (Nhấn giữ lâu - Long Press)
 let touchTimer = null;
-document.addEventListener('touchstart', (e) => { touchTimer = setTimeout(() => { showRightClickToast(); }, 500); }, { passive: true });
-document.addEventListener('touchend', () => { if (touchTimer) clearTimeout(touchTimer); });
-document.addEventListener('touchmove', () => { if (touchTimer) clearTimeout(touchTimer); });
 
+document.addEventListener('touchstart', (e) => {
+    // Bắt đầu đếm thời gian khi chạm vào màn hình (500ms được tính là nhấn giữ)
+    touchTimer = setTimeout(() => {
+        showRightClickToast();
+    }, 500);
+}, { passive: true });
+
+document.addEventListener('touchend', () => {
+    // Nếu buông tay ra trước 500ms thì hủy đếm (chỉ là chạm nhanh)
+    if (touchTimer) clearTimeout(touchTimer);
+});
+
+document.addEventListener('touchmove', () => {
+    // Nếu vuốt/cuộn trang thì hủy đếm
+    if (touchTimer) clearTimeout(touchTimer);
+});
 // ==========================================
 // LOGIC ĐIỀU KHIỂN NHÂN VẬT & BÓNG THOẠI
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
   const character = document.getElementById("character");
   const bubble = document.getElementById("bubble");
-  if (!character || !bubble) return;
 
+  if (!character || !bubble) {
+    console.error("Không tìm thấy thẻ #character hoặc #bubble trong HTML!");
+    return;
+  }
+
+  // Khai báo bộ câu thoại phong phú theo từng ngữ cảnh
   const DIALOGUES = {
-    click: ["Đi thôi nào!", "Tới đó ngay đây!", "Đợi mình chút nhé!", "Đi khám phá thôi!", "OK, xuất phát!", "Đang đến đây~", "Theo chân mình nào!"],
-    greeting: ["Xin chào tôi là Hồ Hiếu Nghĩa , là web developer của trang này.", "Chào mừng bạn đến với trang web!", "Đã tới nơi rồi nè, chào bạn!", "Xin chào! Chúc bạn một ngày tốt lành!", "Hề lố! Rất vui được gặp bạn~", "Đã tới điểm hẹn rồi nhé!"],
-    idle: ["Hôm nay trời đẹp thật!", "Đang suy nghĩ gì đó...", "Nghỉ chân chút đã~", "Bạn có cần mình giúp gì không?", "Lalalala... ♪", "Trang web này thú vị quá!", "Đang đứng ngắm cảnh..."],
-    jump: ["Bật cao lên!", "Hế-tô!", "Nhảy nè!", "Ui chao!"]
+    click: [
+      "Đi thôi nào!",
+      "Tới đó ngay đây!",
+      "Đợi mình chút nhé!",
+      "Đi khám phá thôi!",
+      "OK, xuất phát!",
+      "Đang đến đây~",
+      "Theo chân mình nào!"
+    ],
+    // Các câu thoại chào mừng khi vừa di chuyển tới điểm mới
+    greeting: [
+      "Xin chào tôi là Hồ Hiếu Nghĩa , là web developer của trang này.",
+      "Chào mừng bạn đến với trang web!",
+      "Đã tới nơi rồi nè, chào bạn!",
+      "Xin chào! Chúc bạn một ngày tốt lành!",
+      "Hề lố! Rất vui được gặp bạn~",
+      "Đã tới điểm hẹn rồi nhé!"
+    ],
+    idle: [
+      "Hôm nay trời đẹp thật!",
+      "Đang suy nghĩ gì đó...",
+      "Nghỉ chân chút đã~",
+      "Bạn có cần mình giúp gì không?",
+      "Lalalala... ♪",
+      "Trang web này thú vị quá!",
+      "Đang đứng ngắm cảnh..."
+    ],
+    jump: [
+      "Bật cao lên!",
+      "Hế-tô!",
+      "Nhảy nè!",
+      "Ui chao!"
+    ]
   };
 
   function getRandomPhrase(type) {
@@ -711,16 +836,29 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const state = {
-    x: window.innerWidth * 0.5, y: window.innerHeight * 0.65,
-    tx: window.innerWidth * 0.5, ty: window.innerHeight * 0.65,
-    speed: 0.09, mode: "idle", facing: 1, jumpTimer: 0, idleTalkTimer: 0,
-    pauseTimer: 0, isMoving: false, action: null, actionTimer: 0
+    x: window.innerWidth * 0.5,
+    y: window.innerHeight * 0.65,
+    tx: window.innerWidth * 0.5,
+    ty: window.innerHeight * 0.65,
+    speed: 0.09, // Tốc độ di chuyển (đi bộ thong thả)
+    mode: "idle",
+    facing: 1,
+    jumpTimer: 0,
+    idleTalkTimer: 0,
+    pauseTimer: 0,    // Đếm ngược thời gian đứng yên tạm thời (ms)
+    isMoving: false,  // Đánh dấu nhân vật có đang trong trạng thái di chuyển hay không
+    action: null,     // Hành động đặc biệt khi đứng yên: "wave" | "adjust-tie"
+    actionTimer: 0    // Thời gian còn lại của hành động đặc biệt (ms)
   };
 
-  let tapCount = 0;
-  const WAVE_MS = 2000, TIE_MS = 2000, JUMP_MS = 900;
+  let tapCount = 0;           // đếm số lần chạm vào nhân vật
+  const WAVE_MS = 2000;       // 1 vòng vẫy tay = 24 khung
+  const TIE_MS = 2000;        // 1 vòng chỉnh cà vạt = 24 khung
+  const JUMP_MS = 900;        // 1 vòng nhảy = 24 khung
 
-  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
 
   function newDestination() {
     const margin = 70;
@@ -742,47 +880,89 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function update(dt) {
-    const dx = state.tx - state.x, dy = state.ty - state.y, dist = Math.hypot(dx, dy);
+    const dx = state.tx - state.x;
+    const dy = state.ty - state.y;
+    const dist = Math.hypot(dx, dy);
 
     if (dist < 6) {
+      // Vừa di chuyển tới nơi: vẫy tay chào + nói câu chào, đứng yên 2 - 3 giây
       if (state.isMoving) {
-        state.isMoving = false; state.jumpTimer = 0;
+        state.isMoving = false;
+        state.jumpTimer = 0;
         state.pauseTimer = WAVE_MS + Math.random() * 1000;
-        state.action = "wave"; state.actionTimer = WAVE_MS;
+        state.action = "wave";
+        state.actionTimer = WAVE_MS;
         speak(getRandomPhrase("greeting"));
       }
 
-      if (state.jumpTimer > 0) { state.jumpTimer -= dt; setMode("jump"); }
-      else if (state.actionTimer > 0) { state.actionTimer -= dt; setMode(state.action); }
-      else { state.action = null; setMode("idle"); }
+      // Đang thực hiện hành động đặc biệt (vẫy tay / chỉnh cà vạt) thì giữ nguyên tới khi hết 1 vòng
+      if (state.jumpTimer > 0) {
+        state.jumpTimer -= dt;
+        setMode("jump");
+      } else if (state.actionTimer > 0) {
+        state.actionTimer -= dt;
+        setMode(state.action);
+      } else {
+        state.action = null;
+        setMode("idle");
+      }
 
-      if (state.pauseTimer > 0) { state.pauseTimer -= dt; }
-      else {
+      // Nếu đang trong thời gian đứng yên tạm thời thì giảm bộ đếm và không nhận điểm di chuyển mới
+      if (state.pauseTimer > 0) {
+        state.pauseTimer -= dt;
+      } else {
+        // Hết thời gian tạm dừng -> Chuyển sang trạng thái rảnh rỗi bình thường
         state.idleTalkTimer += dt;
         if (state.idleTalkTimer > 2500) {
           state.idleTalkTimer = 0;
           const r = Math.random();
-          if (r < 0.6) { state.action = "adjust-tie"; state.actionTimer = TIE_MS; setMode("adjust-tie"); }
-          else if (r < 0.85) { speak(getRandomPhrase("idle")); }
+          if (r < 0.6) {
+            // Chỉnh lại cà vạt (1 vòng 24 khung)
+            state.action = "adjust-tie";
+            state.actionTimer = TIE_MS;
+            setMode("adjust-tie");
+          } else if (r < 0.85) {
+            speak(getRandomPhrase("idle"));
+          }
         }
+
+        // Tự động chọn điểm đi dạo tiếp theo khi rảnh rỗi
         if (Math.random() < 0.0015) newDestination();
       }
     } else {
-      state.isMoving = true; state.idleTalkTimer = 0; state.action = null; state.actionTimer = 0;
+      // Đang trên đường di chuyển
+      state.isMoving = true;
+      state.idleTalkTimer = 0;
+      state.action = null;
+      state.actionTimer = 0;
       state.facing = dx >= 0 ? 1 : -1;
-      const step = Math.min(dist, state.speed * dt);
-      state.x += (dx / dist) * step; state.y += (dy / dist) * step;
 
-      if (state.jumpTimer <= 0 && Math.random() < 0.0012) { state.jumpTimer = JUMP_MS; speak(getRandomPhrase("jump")); }
-      if (state.jumpTimer > 0) { state.jumpTimer -= dt; setMode("jump"); }
-      else { setMode("walk"); }
+      const step = Math.min(dist, state.speed * dt);
+      state.x += (dx / dist) * step;
+      state.y += (dy / dist) * step;
+
+      // Thỉnh thoảng nhảy ngẫu nhiên khi đang đi
+      if (state.jumpTimer <= 0 && Math.random() < 0.0012) {
+        state.jumpTimer = JUMP_MS;
+        speak(getRandomPhrase("jump"));
+      }
+
+      if (state.jumpTimer > 0) {
+        state.jumpTimer -= dt;
+        setMode("jump");
+      } else {
+        setMode("walk");
+      }
     }
 
     const margin = 35;
     state.x = clamp(state.x, margin, window.innerWidth - margin);
     state.y = clamp(state.y, margin, window.innerHeight - margin);
 
-    character.style.transform = `translate(${Math.round(state.x - 56)}px, ${Math.round(state.y - 56)}px) scaleX(${state.facing})`;
+    const posX = Math.round(state.x - 56);
+    const posY = Math.round(state.y - 56);
+
+    character.style.transform = `translate(${posX}px, ${posY}px) scaleX(${state.facing})`;
     bubble.style.left = Math.round(state.x) + "px";
     bubble.style.top = Math.round(state.y - 58) + "px";
   }
@@ -800,23 +980,31 @@ document.addEventListener("DOMContentLoaded", () => {
     state.y = clamp(state.y, 35, window.innerHeight - 35);
   });
 
+  // Sự kiện nhấp chuột / chạm màn hình
   document.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button, input, select, textarea, a")) return;
+
+    // Chạm/nhấp trúng người nhân vật -> làm hành động (xoay vòng), không di chuyển
     if (Math.abs(e.clientX - state.x) < 40 && Math.abs(e.clientY - state.y) < 56) {
       const list = ["adjust-tie", "wave", "jump", "matrix"];
       triggerAction(list[tapCount % list.length]);
       tapCount++;
       return;
     }
-    state.tx = e.clientX; state.ty = e.clientY;
+
+    state.tx = e.clientX;
+    state.ty = e.clientY;
     speak(getRandomPhrase("click"));
   });
 
+  // ===== HIỆU ỨNG MÃ NHỊ PHÂN RƠI TOÀN TRANG (kéo dài 2 giây) =====
   const MATRIX_MS = 2000;
   const matrixFx = { overlay: null, timer: null, fadeTimer: null, stopTimer: null };
 
   function stopMatrix() {
-    clearInterval(matrixFx.timer); clearTimeout(matrixFx.fadeTimer); clearTimeout(matrixFx.stopTimer);
+    clearInterval(matrixFx.timer);
+    clearTimeout(matrixFx.fadeTimer);
+    clearTimeout(matrixFx.stopTimer);
     if (matrixFx.overlay) matrixFx.overlay.remove();
     matrixFx.overlay = null;
     document.body.classList.remove("matrix-on");
@@ -824,58 +1012,100 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startMatrix() {
     stopMatrix();
-    const overlay = document.createElement("div"); overlay.className = "matrix-overlay";
-    const canvas = document.createElement("canvas"); overlay.appendChild(canvas);
-    document.body.appendChild(overlay); matrixFx.overlay = overlay;
+    const overlay = document.createElement("div");
+    overlay.className = "matrix-overlay";
+    const canvas = document.createElement("canvas");
+    overlay.appendChild(canvas);
+    document.body.appendChild(overlay);
+    matrixFx.overlay = overlay;
 
     const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const binary = "01", fontSize = 16, columns = Math.ceil(canvas.width / fontSize), rainDrops = [];
-    for (let i = 0; i < columns; i++) rainDrops[i] = Math.random() * -20;
+    const binary = "01";
+    const fontSize = 16;
+    const columns = Math.ceil(canvas.width / fontSize);
+    const rainDrops = [];
+    for (let i = 0; i < columns; i++) {
+      rainDrops[i] = Math.random() * -20;   // so le vị trí bắt đầu phía trên màn hình
+    }
 
     function draw() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#0F0"; ctx.font = fontSize + "px monospace";
+      // Lớp phủ đen mờ tạo vệt đuôi mờ dần
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#0F0";
+      ctx.font = fontSize + "px monospace";
       for (let i = 0; i < rainDrops.length; i++) {
         const text = binary.charAt(Math.floor(Math.random() * binary.length));
-        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) rainDrops[i] = 0;
+        const x = i * fontSize;
+        const y = rainDrops[i] * fontSize;
+        ctx.fillText(text, x, y);
+        if (y > canvas.height && Math.random() > 0.975) {
+          rainDrops[i] = 0;
+        }
         rainDrops[i]++;
       }
     }
-    draw(); matrixFx.timer = setInterval(draw, 30);
+    draw();
+    matrixFx.timer = setInterval(draw, 30);
+
     document.body.classList.add("matrix-on");
-    requestAnimationFrame(() => overlay.classList.add("show"));
-    matrixFx.fadeTimer = setTimeout(() => overlay.classList.remove("show"), MATRIX_MS - 350);
-    matrixFx.stopTimer = setTimeout(stopMatrix, MATRIX_MS);
+    requestAnimationFrame(() => overlay.classList.add("show"));            // hiện dần
+    matrixFx.fadeTimer = setTimeout(() => overlay.classList.remove("show"), MATRIX_MS - 350); // mờ dần
+    matrixFx.stopTimer = setTimeout(stopMatrix, MATRIX_MS);                // hết 2 giây
   }
 
+  // Kích hoạt nhanh một hành động tại chỗ: "adjust-tie" | "wave" | "jump" | "matrix"
   function triggerAction(name) {
-    state.tx = state.x; state.ty = state.y; state.isMoving = false; state.jumpTimer = 0; state.action = null; state.actionTimer = 0;
-    character.className = "character"; void character.offsetWidth; state.mode = "";
+    state.tx = state.x; state.ty = state.y;      // dừng lại tại chỗ
+    state.isMoving = false;
+    state.jumpTimer = 0;
+    state.action = null; state.actionTimer = 0;
+    // Khởi động lại hoạt ảnh từ khung đầu tiên
+    character.className = "character";
+    void character.offsetWidth;
+    state.mode = "";
     if (name === "adjust-tie") {
-      state.action = "adjust-tie"; state.actionTimer = TIE_MS; state.pauseTimer = TIE_MS + 500; setMode("adjust-tie");
+      state.action = "adjust-tie"; state.actionTimer = TIE_MS;
+      state.pauseTimer = TIE_MS + 500;
+      setMode("adjust-tie");
     } else if (name === "matrix") {
-      state.action = "adjust-tie"; state.actionTimer = MATRIX_MS; state.pauseTimer = MATRIX_MS + 500; setMode("adjust-tie");
-      startMatrix(); speak("Đang giải mã dữ liệu... 0101");
+      // Động tác thứ 4: dùng hoạt ảnh chỉnh cà vạt + mã nhị phân rơi toàn trang trong 2 giây
+      state.action = "adjust-tie"; state.actionTimer = MATRIX_MS;
+      state.pauseTimer = MATRIX_MS + 500;
+      setMode("adjust-tie");
+      startMatrix();
+      speak("Đang giải mã dữ liệu... 0101");
     } else if (name === "wave") {
-      state.action = "wave"; state.actionTimer = WAVE_MS; state.pauseTimer = WAVE_MS + 500; setMode("wave"); speak(getRandomPhrase("greeting"));
+      state.action = "wave"; state.actionTimer = WAVE_MS;
+      state.pauseTimer = WAVE_MS + 500;
+      setMode("wave");
+      speak(getRandomPhrase("greeting"));
     } else {
-      state.jumpTimer = JUMP_MS; state.pauseTimer = JUMP_MS + 300; setMode("jump"); speak(getRandomPhrase("jump"));
+      state.jumpTimer = JUMP_MS;
+      state.pauseTimer = JUMP_MS + 300;
+      setMode("jump");
+      speak(getRandomPhrase("jump"));
     }
   }
 
+  // Máy tính: phím tắt (không hoạt động khi đang gõ trong ô nhập)
+  //   T = chỉnh cà vạt, W = vẫy tay chào, J = nhảy, A = mã nhị phân (động tác 4)
   window.addEventListener("keydown", (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
     if (e.target && e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+    // Dùng e.code (vị trí phím) để chạy được cả khi đang bật bộ gõ tiếng Việt (Telex/VNI)
     const k = (e.code || "").toLowerCase();
     if (k === "keyt") triggerAction("adjust-tie");
     else if (k === "keyw") triggerAction("wave");
     else if (k === "keyj") triggerAction("jump");
     else if (k === "keya") triggerAction("matrix");
   }, true);
+  console.log("[UniSearchVN] Nhân vật v24h đã tải. Phím: T = chỉnh cà vạt, W = vẫy tay, J = nhảy, A = mã nhị phân; chạm vào nhân vật 4 lần để ra động tác thứ 4.");
 
   requestAnimationFrame(loop);
 });
@@ -885,12 +1115,25 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 (function () {
     'use strict';
-    const MAX_N = 10, LAPLACE_MAX_N = 8, MATHJAX_SRC = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-    let dim = 3, lastStepsText = '', guideTypeset = false, mathJaxPromise = null, mathJaxWarned = false, typesetChain = Promise.resolve(), toastTimer = null;
+
+    const MAX_N = 10;          // Cỡ ma trận tối đa
+    const LAPLACE_MAX_N = 8;   // Laplace có độ phức tạp n! nên giới hạn cỡ ma trận
+    const MATHJAX_SRC = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+
+    let dim = 3;
+    let lastStepsText = '';
+    let guideTypeset = false;
+    let mathJaxPromise = null;
+    let mathJaxWarned = false;
+    let typesetChain = Promise.resolve();
+    let toastTimer = null;
+
     const $ = (id) => document.getElementById(id);
 
+    // ---------- Phân số chính xác (BigInt, không bị tràn số) ----------
     function bgcd(a, b) {
-        if (a < 0n) a = -a; if (b < 0n) b = -b;
+        if (a < 0n) a = -a;
+        if (b < 0n) b = -b;
         while (b) { [a, b] = [b, a % b]; }
         return a;
     }
@@ -901,7 +1144,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (den === 0n) throw new Error('Mẫu số không thể bằng 0.');
             if (den < 0n) { num = -num; den = -den; }
             const g = bgcd(num, den);
-            this.num = num / g; this.den = den / g;
+            this.num = num / g;
+            this.den = den / g;
         }
         add(f) { return new Fraction(this.num * f.den + f.num * this.den, this.den * f.den); }
         sub(f) { return new Fraction(this.num * f.den - f.num * this.den, this.den * f.den); }
@@ -918,30 +1162,37 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         toString() { return this.den === 1n ? `${this.num}` : `${this.num}/${this.den}`; }
         toNumber() { return Number(this.num) / Number(this.den); }
+        // Dạng TeX dùng làm thừa số trong tích: số âm được đặt trong ngoặc
         toTexFactor() { return this.num < 0n ? `(${this.toTex()})` : this.toTex(); }
     }
 
+    // Đọc số thập phân (chấp nhận cả dấu "." và dấu "," kiểu Việt Nam)
     function parseDecimal(s) {
         const m = /^([+-]?)(\d*)(?:[.,](\d*))?$/.exec(s);
         if (!m) return null;
-        const intPart = m[2] || '', fracPart = m[3] || '';
+        const intPart = m[2] || '';
+        const fracPart = m[3] || '';
         if (!intPart && !fracPart) return null;
         let num = BigInt((intPart || '0') + fracPart);
         if (m[1] === '-') num = -num;
         return new Fraction(num, 10n ** BigInt(fracPart.length));
     }
 
+    // Trả về Fraction, hoặc null nếu ô nhập không hợp lệ. Ô trống = 0.
     function parseCell(raw) {
         const s = String(raw).replace(/\s+/g, '').replace(/−/g, '-');
         if (s === '') return new Fraction(0n);
         const parts = s.split('/');
         if (parts.length > 2) return null;
-        const a = parseDecimal(parts[0]); if (!a) return null;
+        const a = parseDecimal(parts[0]);
+        if (!a) return null;
         if (parts.length === 1) return a;
-        const b = parseDecimal(parts[1]); if (!b || b.isZero()) return null;
+        const b = parseDecimal(parts[1]);
+        if (!b || b.isZero()) return null;
         return a.div(b);
     }
 
+    // ---------- Giao diện nhập ma trận ----------
     const cell = (i, j) => $(`mxCell_${i}_${j}`);
 
     function renderGrid(n, keep) {
@@ -951,7 +1202,13 @@ document.addEventListener("DOMContentLoaded", () => {
         for (let i = 0; i < n; i++) {
             for (let j = 0; j < n; j++) {
                 const input = document.createElement('input');
-                input.type = 'text'; input.id = `mxCell_${i}_${j}`; input.className = 'mx-cell'; input.placeholder = '0'; input.maxLength = 12; input.autocomplete = 'off';
+                input.type = 'text';
+                input.id = `mxCell_${i}_${j}`;
+                input.className = 'mx-cell';
+                input.placeholder = '0';
+                input.maxLength = 12;
+                input.autocomplete = 'off';
+                input.setAttribute('aria-label', `Phần tử hàng ${i + 1}, cột ${j + 1}`);
                 if (keep && keep[i] && keep[i][j] !== undefined) input.value = keep[i][j];
                 input.addEventListener('focus', () => input.select());
                 input.addEventListener('input', () => input.classList.remove('mx-invalid'));
@@ -962,28 +1219,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function onCellKey(e, r, c, n) {
-        const el = e.target; let tr = r, tc = c;
+        const el = e.target;
+        let tr = r, tc = c;
         switch (e.key) {
-            case 'ArrowRight': if (el.selectionEnd !== el.value.length) return; tc = (c + 1) % n; break;
-            case 'ArrowLeft': if (el.selectionStart !== 0) return; tc = (c - 1 + n) % n; break;
+            case 'ArrowRight':
+                if (el.selectionEnd !== el.value.length) return;
+                tc = (c + 1) % n; break;
+            case 'ArrowLeft':
+                if (el.selectionStart !== 0) return;
+                tc = (c - 1 + n) % n; break;
             case 'ArrowDown': tr = (r + 1) % n; break;
             case 'ArrowUp': tr = (r - 1 + n) % n; break;
-            case 'Enter': if (r === n - 1 && c === n - 1) { e.preventDefault(); calculate(); return; } tc = (c + 1) % n; if (tc === 0) tr = (r + 1) % n; break;
+            case 'Enter':
+                if (r === n - 1 && c === n - 1) { e.preventDefault(); calculate(); return; }
+                tc = (c + 1) % n;
+                if (tc === 0) tr = (r + 1) % n;
+                break;
             default: return;
         }
-        e.preventDefault(); const next = cell(tr, tc); if (next) next.focus();
+        e.preventDefault();
+        const next = cell(tr, tc);
+        if (next) next.focus();
     }
 
     function changeDimension(n) {
         n = Math.max(1, Math.min(MAX_N, parseInt(n, 10) || 3));
+        // Giữ lại các giá trị đã nhập khi đổi cỡ ma trận
         const keep = [];
         for (let i = 0; i < Math.min(dim, n); i++) {
             keep[i] = [];
             for (let j = 0; j < Math.min(dim, n); j++) {
-                const el = cell(i, j); keep[i][j] = el ? el.value : '';
+                const el = cell(i, j);
+                keep[i][j] = el ? el.value : '';
             }
         }
-        dim = n; $('mxDimInput').value = n;
+        dim = n;
+        $('mxDimInput').value = n;
         document.querySelectorAll('#mxPresets .mx-preset').forEach(btn => {
             btn.classList.toggle('active', parseInt(btn.dataset.n, 10) === n);
         });
@@ -992,33 +1263,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function clearMatrix() {
         for (let i = 0; i < dim; i++) for (let j = 0; j < dim; j++) {
-            const el = cell(i, j); el.value = ''; el.classList.remove('mx-invalid');
+            const el = cell(i, j);
+            el.value = '';
+            el.classList.remove('mx-invalid');
         }
         showToast('Đã xóa dữ liệu ma trận');
     }
 
     function fillRandom() {
         for (let i = 0; i < dim; i++) for (let j = 0; j < dim; j++) {
-            const el = cell(i, j); el.value = Math.floor(Math.random() * 19) - 9; el.classList.remove('mx-invalid');
+            const el = cell(i, j);
+            el.value = Math.floor(Math.random() * 19) - 9; // -9 ... 9
+            el.classList.remove('mx-invalid');
         }
         showToast('Đã điền ma trận ngẫu nhiên');
     }
 
     function fillIdentity() {
         for (let i = 0; i < dim; i++) for (let j = 0; j < dim; j++) {
-            const el = cell(i, j); el.value = (i === j) ? '1' : '0'; el.classList.remove('mx-invalid');
+            const el = cell(i, j);
+            el.value = (i === j) ? '1' : '0';
+            el.classList.remove('mx-invalid');
         }
         showToast('Đã khởi tạo ma trận đơn vị');
     }
 
+    // Đọc ma trận từ lưới nhập; ô sai định dạng được đánh dấu đỏ thay vì bị coi là 0
     function readMatrix() {
-        const matrix = [], bad = [];
+        const matrix = [];
+        const bad = [];
         for (let i = 0; i < dim; i++) {
             const row = [];
             for (let j = 0; j < dim; j++) {
-                const el = cell(i, j), f = parseCell(el.value);
-                if (f === null) { bad.push(`(${i + 1}, ${j + 1})`); el.classList.add('mx-invalid'); row.push(new Fraction(0n)); } 
-                else { el.classList.remove('mx-invalid'); row.push(f); }
+                const el = cell(i, j);
+                const f = parseCell(el.value);
+                if (f === null) {
+                    bad.push(`(${i + 1}, ${j + 1})`);
+                    el.classList.add('mx-invalid');
+                    row.push(new Fraction(0n));
+                } else {
+                    el.classList.remove('mx-invalid');
+                    row.push(f);
+                }
             }
             matrix.push(row);
         }
@@ -1030,96 +1316,282 @@ document.addEventListener("DOMContentLoaded", () => {
         return `\\begin{pmatrix}${rows.join(' \\\\ ')}\\end{pmatrix}`;
     }
 
+    // ---------- Các phương pháp giải ----------
     function solveSarrus(matrix) {
         const steps = [];
         steps.push(`<strong>Áp dụng Quy tắc Sarrus cho ma trận 3x3:</strong>`);
         steps.push(`Ma trận $A = ${matrixToTex(matrix)}$`);
+
         const [a, b, c] = matrix[0], [d, e, f] = matrix[1], [g, h, i] = matrix[2];
         const p1 = a.mul(e).mul(i), p2 = b.mul(f).mul(g), p3 = c.mul(d).mul(h);
         const m1 = c.mul(e).mul(g), m2 = a.mul(f).mul(h), m3 = b.mul(d).mul(i);
-        const posSum = p1.add(p2).add(p3), negSum = m1.add(m2).add(m3), result = posSum.sub(negSum);
+        const posSum = p1.add(p2).add(p3);
+        const negSum = m1.add(m2).add(m3);
+        const result = posSum.sub(negSum);
 
-        steps.push(`<strong>Cộng 3 tích đường chéo chính:</strong><br>$$P = ${posSum.toTex()}$$`);
-        steps.push(`<strong>Cộng 3 tích đường chéo phụ:</strong><br>$$N = ${negSum.toTex()}$$`);
-        steps.push(`<strong>Tính Định Thức:</strong><br>$$\\det(A) = P - N = ${result.toTex()}$$`);
+        steps.push(`<strong>Cộng 3 tích đường chéo chính (chiều xuôi):</strong><br>
+            $$P = (${a.toTexFactor()} \\cdot ${e.toTexFactor()} \\cdot ${i.toTexFactor()}) + (${b.toTexFactor()} \\cdot ${f.toTexFactor()} \\cdot ${g.toTexFactor()}) + (${c.toTexFactor()} \\cdot ${d.toTexFactor()} \\cdot ${h.toTexFactor()})$$<br>
+            $$P = ${p1.toTex()} + ${p2.toTex()} + ${p3.toTex()} = ${posSum.toTex()}$$`);
+        steps.push(`<strong>Cộng 3 tích đường chéo phụ (chiều ngược):</strong><br>
+            $$N = (${c.toTexFactor()} \\cdot ${e.toTexFactor()} \\cdot ${g.toTexFactor()}) + (${a.toTexFactor()} \\cdot ${f.toTexFactor()} \\cdot ${h.toTexFactor()}) + (${b.toTexFactor()} \\cdot ${d.toTexFactor()} \\cdot ${i.toTexFactor()})$$<br>
+            $$N = ${m1.toTex()} + ${m2.toTex()} + ${m3.toTex()} = ${negSum.toTex()}$$`);
+        steps.push(`<strong>Tính Định Thức:</strong><br>
+            $$\\det(A) = P - N = ${posSum.toTex()} - (${negSum.toTex()}) = ${result.toTex()}$$`);
         return { result, steps };
     }
 
     function solveGauss(matrix) {
-        const steps = [], n = matrix.length, A = matrix.map(row => row.slice());
-        steps.push(`<strong>Thuật toán Khử Gauss:</strong>`); steps.push(`Ma trận $A = ${matrixToTex(A)}$`);
+        const steps = [];
+        const n = matrix.length;
+        const A = matrix.map(row => row.slice());
+
+        steps.push(`<strong>Sử dụng thuật toán Khử Gauss (đưa về dạng tam giác trên):</strong>`);
+        steps.push(`Ma trận ban đầu $A = ${matrixToTex(A)}$`);
+
         let swapCount = 0;
         for (let i = 0; i < n; i++) {
-            let pivotRow = i; while (pivotRow < n && A[pivotRow][i].isZero()) pivotRow++;
-            if (pivotRow === n) return { result: new Fraction(0n), steps: steps.concat([`$$\\det(A) = 0$$`]) };
-            if (pivotRow !== i) { [A[i], A[pivotRow]] = [A[pivotRow], A[i]]; swapCount++; }
+            let pivotRow = i;
+            while (pivotRow < n && A[pivotRow][i].isZero()) pivotRow++;
+
+            if (pivotRow === n) {
+                steps.push(`Cột ${i + 1} (từ dòng ${i + 1} trở xuống) toàn số 0 nên định thức bằng 0.`);
+                steps.push(`$$\\det(A) = 0$$`);
+                return { result: new Fraction(0n), steps };
+            }
+
+            if (pivotRow !== i) {
+                [A[i], A[pivotRow]] = [A[pivotRow], A[i]];
+                swapCount++;
+                steps.push(`<strong>Đổi chỗ Dòng ${i + 1} và Dòng ${pivotRow + 1}:</strong> (định thức đổi dấu - nhân thêm $-1$)<br>
+                    $$A \\rightarrow ${matrixToTex(A)}$$`);
+            }
+
             for (let j = i + 1; j < n; j++) {
                 if (A[j][i].isZero()) continue;
                 const factor = A[j][i].div(A[i][i]);
-                for (let k = i; k < n; k++) A[j][k] = A[j][k].sub(factor.mul(A[i][k]));
+                for (let k = i; k < n; k++) {
+                    A[j][k] = A[j][k].sub(factor.mul(A[i][k]));
+                }
+                steps.push(`<strong>Biến đổi: $d_{${j + 1}} \\rightarrow d_{${j + 1}} - (${factor.toTex()}) \\cdot d_{${i + 1}}$:</strong><br>
+                    $$A \\rightarrow ${matrixToTex(A)}$$`);
             }
         }
+
         let diagProduct = new Fraction(1n);
-        for (let i = 0; i < n; i++) diagProduct = diagProduct.mul(A[i][i]);
+        const diagTerms = [];
+        for (let i = 0; i < n; i++) {
+            diagProduct = diagProduct.mul(A[i][i]);
+            diagTerms.push(A[i][i].toTexFactor());
+        }
         const result = (swapCount % 2 === 0) ? diagProduct : diagProduct.mul(new Fraction(-1n));
-        steps.push(`$$\\det(A) = ${result.toTex()}$$`);
+
+        steps.push(`<strong>Ma trận đã về dạng tam giác trên.</strong><br>
+            Định thức bằng tích các phần tử trên đường chéo chính${swapCount > 0 ? ` nhân với $(-1)^{${swapCount}}$ do đã đổi dòng ${swapCount} lần` : ''}:`);
+        steps.push(`$$\\det(A) = ${swapCount > 0 ? `(-1)^{${swapCount}} \\cdot ` : ''}(${diagTerms.join(' \\cdot ')}) = ${result.toTex()}$$`);
         return { result, steps };
     }
 
+    function laplaceRecursive(mat) {
+        const size = mat.length;
+        if (size === 1) return mat[0][0];
+        if (size === 2) return mat[0][0].mul(mat[1][1]).sub(mat[0][1].mul(mat[1][0]));
+        let det = new Fraction(0n);
+        for (let j = 0; j < size; j++) {
+            const elem = mat[0][j];
+            if (elem.isZero()) continue;
+            const minor = mat.slice(1).map(row => row.filter((_, c) => c !== j));
+            const term = elem.mul(laplaceRecursive(minor));
+            det = (j % 2 === 0) ? det.add(term) : det.sub(term);
+        }
+        return det;
+    }
+
     function solveLaplace(matrix) {
-        const steps = [], n = matrix.length;
-        steps.push(`<strong>Khai triển Laplace theo Dòng 1:</strong>`);
+        const steps = [];
+        const n = matrix.length;
+        steps.push(`<strong>Sử dụng Khai triển Laplace theo Dòng 1:</strong>`);
+        steps.push(`Ma trận $A = ${matrixToTex(matrix)}$`);
+
+        const termsTex = [];
         let total = new Fraction(0n);
+
         for (let j = 0; j < n; j++) {
-            const elem = matrix[0][j], sign = (j % 2 === 0) ? 1 : -1;
+            const elem = matrix[0][j];
+            const sign = (j % 2 === 0) ? 1 : -1;
             const submat = matrix.slice(1).map(row => row.filter((_, c) => c !== j));
-            const subDet = solveGauss(submat).result;
+            const subDet = laplaceRecursive(submat);
             const termVal = elem.mul(subDet);
             total = (sign === 1) ? total.add(termVal) : total.sub(termVal);
+
+            steps.push(`<strong>Phần tử $a_{1,${j + 1}} = ${elem.toTex()}$:</strong><br>
+                Phần bù đại số $C_{1,${j + 1}} = (-1)^{1+${j + 1}} \\cdot \\det${matrixToTex(submat)} = ${sign === 1 ? '' : '-'}(${subDet.toTex()})$`);
+            termsTex.push(`(${sign === 1 ? '+' : '-'} ${elem.toTexFactor()} \\cdot (${subDet.toTex()}))`);
         }
-        steps.push(`$$\\det(A) = ${total.toTex()}$$`);
+
+        steps.push(`<strong>Tổng hợp khai triển Laplace:</strong><br>
+            $$\\det(A) = ${termsTex.join(' ')} = ${total.toTex()}$$`);
         return { result: total, steps };
     }
 
+    // ---------- Điều phối tính toán & hiển thị kết quả ----------
     function calculate() {
-        const stepsOutput = $('stepsOutputMx'), { matrix, bad } = readMatrix();
+        const stepsOutput = $('stepsOutputMx');
+        const { matrix, bad } = readMatrix();
+
         if (bad.length > 0) {
-            stepsOutput.innerHTML = `<div class="mx-error">⚠️ Ô không hợp lệ: <b>${bad.join(', ')}</b>.</div>`;
+            lastStepsText = '';
+            $('mxResultValue').textContent = '--';
+            $('mxResultFraction').textContent = '';
+            $('mxTypeTag').textContent = '⚠️ Có ô nhập không hợp lệ';
+            stepsOutput.innerHTML = `<div class="mx-error">⚠️ Các ô sau không phải số hợp lệ (chỉ nhận số nguyên, thập phân hoặc phân số dạng a/b với b ≠ 0): <b>${bad.join(', ')}</b>.<br>Vui lòng sửa các ô được đánh dấu đỏ rồi tính lại.</div>`;
+            showToast('Có ' + bad.length + ' ô nhập không hợp lệ!');
             return;
         }
+
         const method = $('mxMethod').value;
-        let res = (dim === 3 && (method === 'auto' || method === 'sarrus')) ? solveSarrus(matrix) : solveGauss(matrix);
-        $('mxResultValue').textContent = res.result.toString();
-        stepsOutput.innerHTML = res.steps.map(s => `<div class="mx-step">${s}</div>`).join('');
+        let result, steps;
+
+        try {
+            if (dim === 1) {
+                result = matrix[0][0];
+                steps = [
+                    `<strong>Ma trận cấp 1x1:</strong> Định thức bằng chính phần tử duy nhất.`,
+                    `$$\\det(A) = ${result.toTex()}$$`
+                ];
+            } else if (dim === 2) {
+                const [[a, b], [c, d]] = matrix;
+                const ad = a.mul(d), bc = b.mul(c);
+                result = ad.sub(bc);
+                steps = [
+                    `<strong>Công thức ma trận 2x2:</strong> $$\\det(A) = a_{11}a_{22} - a_{12}a_{21}$$`,
+                    `$$\\det(A) = (${a.toTex()}) \\cdot (${d.toTex()}) - (${b.toTex()}) \\cdot (${c.toTex()})$$`,
+                    `$$\\det(A) = ${ad.toTex()} - (${bc.toTex()}) = ${result.toTex()}$$`
+                ];
+            } else {
+                let chosen = method;
+                if (method === 'auto') {
+                    chosen = (dim === 3) ? 'sarrus' : 'gauss';
+                } else if (method === 'sarrus' && dim !== 3) {
+                    showToast('Quy tắc Sarrus chỉ áp dụng cho ma trận 3x3! Đã tự động chuyển sang Khử Gauss.');
+                    chosen = 'gauss';
+                } else if (method === 'laplace' && dim > LAPLACE_MAX_N) {
+                    showToast(`Khai triển Laplace chỉ hỗ trợ tới n = ${LAPLACE_MAX_N} (độ phức tạp n!). Đã chuyển sang Khử Gauss.`);
+                    chosen = 'gauss';
+                }
+                const res = chosen === 'sarrus' ? solveSarrus(matrix)
+                          : chosen === 'laplace' ? solveLaplace(matrix)
+                          : solveGauss(matrix);
+                result = res.result;
+                steps = res.steps;
+            }
+        } catch (err) {
+            console.error(err);
+            lastStepsText = '';
+            stepsOutput.innerHTML = `<div class="mx-error">⚠️ Lỗi tính toán: ${String(err.message).replace(/[<>&]/g, '')}</div>`;
+            return;
+        }
+
+        // Giá trị chính
+        const approx = result.toNumber();
+        if (result.den === 1n) {
+            $('mxResultValue').textContent = result.num.toLocaleString('vi-VN');
+            $('mxResultFraction').textContent = '';
+        } else {
+            $('mxResultValue').textContent = Number.isFinite(approx)
+                ? approx.toLocaleString('vi-VN', { maximumFractionDigits: 6 })
+                : result.toString();
+            $('mxResultFraction').textContent = `= ${result.toString()}`;
+        }
+        $('mxTypeTag').textContent = result.isZero()
+            ? '⚠️ Ma trận suy biến (det = 0)'
+            : '✅ Ma trận khả nghịch (det ≠ 0)';
+
+        // Lời giải từng bước
+        stepsOutput.innerHTML = steps.map(s => `<div class="mx-step">${s}</div>`).join('');
+        lastStepsText = steps
+            .map(s => s.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n[ \t]+/g, '\n').trim())
+            .join('\n\n');
         typeset(stepsOutput);
     }
 
+    // ---------- MathJax (chỉ tải khi mở công cụ lần đầu) ----------
     function ensureMathJax() {
         if (window.MathJax && window.MathJax.typesetPromise) return Promise.resolve(window.MathJax);
         if (mathJaxPromise) return mathJaxPromise;
-        window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] }, startup: { typeset: false } };
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            startup: { typeset: false } // chỉ render trong vùng của công cụ, không đụng tới phần còn lại của trang
+        };
         mathJaxPromise = new Promise((resolve, reject) => {
-            const s = document.createElement('script'); s.src = MATHJAX_SRC; s.async = true;
-            s.onload = () => resolve(window.MathJax);
-            s.onerror = () => reject(new Error('Lỗi MathJax'));
+            const s = document.createElement('script');
+            s.src = MATHJAX_SRC;
+            s.async = true;
+            s.onload = () => {
+                const ready = (window.MathJax.startup && window.MathJax.startup.promise) || Promise.resolve();
+                ready.then(() => resolve(window.MathJax), reject);
+            };
+            s.onerror = () => { mathJaxPromise = null; reject(new Error('MathJax load failed')); };
             document.head.appendChild(s);
         });
         return mathJaxPromise;
     }
 
     function typeset(el) {
-        typesetChain = typesetChain.then(() => ensureMathJax()).then(MJ => MJ.typesetPromise([el])).catch(() => {});
+        typesetChain = typesetChain
+            .then(() => ensureMathJax())
+            .then(MJ => MJ.typesetPromise([el]))
+            .catch(() => {
+                if (!mathJaxWarned) {
+                    mathJaxWarned = true;
+                    showToast('Không tải được thư viện hiển thị công thức (cần kết nối Internet).');
+                }
+            });
         return typesetChain;
     }
 
-    function showToast(msg) {
-        const toast = $('mxToast'); if (!toast) return;
-        toast.textContent = msg; toast.classList.add('show');
-        clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    // ---------- Tiện ích ----------
+    function copySteps() {
+        if (!lastStepsText) { showToast('Chưa có lời giải để sao chép. Hãy bấm "Tính Định Thức" trước.'); return; }
+        const ok = () => showToast('Đã sao chép lời giải (công thức dạng LaTeX) vào bộ nhớ tạm!');
+        const fallback = () => {
+            const ta = document.createElement('textarea');
+            ta.value = lastStepsText;
+            ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); ok(); } catch (e) { showToast('Không sao chép được, hãy thử lại.'); }
+            document.body.removeChild(ta);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(lastStepsText).then(ok, fallback);
+        } else { fallback(); }
     }
 
-    function openMatrixWorkspace() { toggleMainElements(false); $('matrixWorkspace').style.display = 'block'; }
-    function closeMatrixWorkspace() { toggleMainElements(true); $('matrixWorkspace').style.display = 'none'; }
+    function showToast(msg) {
+        const toast = $('mxToast');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ---------- Mở / đóng workspace ----------
+    function openMatrixWorkspace() {
+        toggleMainElements(false);
+        $('matrixWorkspace').style.display = 'block';
+        if (!guideTypeset) { guideTypeset = true; typeset($('mxGuide')); }
+        const first = cell(0, 0);
+        if (first) first.focus();
+    }
+
+    function closeMatrixWorkspace() {
+        toggleMainElements(true);
+        $('matrixWorkspace').style.display = 'none';
+    }
 
     window.openMatrixWorkspace = openMatrixWorkspace;
     window.closeMatrixWorkspace = closeMatrixWorkspace;
@@ -1127,12 +1599,1333 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener('DOMContentLoaded', () => {
         if (!$('matrixWorkspace')) return;
         renderGrid(dim);
-        document.querySelectorAll('#mxPresets .mx-preset').forEach(btn => btn.addEventListener('click', () => changeDimension(btn.dataset.n)));
+        document.querySelectorAll('#mxPresets .mx-preset').forEach(btn => {
+            btn.addEventListener('click', () => changeDimension(btn.dataset.n));
+        });
         $('mxDimInput').addEventListener('change', (e) => changeDimension(e.target.value));
         $('mxRandomBtn').addEventListener('click', fillRandom);
         $('mxIdentityBtn').addEventListener('click', fillIdentity);
         $('mxClearBtn').addEventListener('click', clearMatrix);
         $('mxCalcBtn').addEventListener('click', calculate);
+        $('mxCopyBtn').addEventListener('click', copySteps);
         $('mxCloseBtn').addEventListener('click', closeMatrixWorkspace);
     });
+})();
+
+
+// ==========================================
+// WORKSPACE: HỌC LẬP TRÌNH C/C++ (kho bài tập + lời giải + mô phỏng)
+// ==========================================
+(function () {
+    'use strict';
+
+    // ----- Dữ liệu bài tập -----
+    const DATABASE = [
+      // ==================== C++ CƠ BẢN ====================
+      {
+        id: "cpp-basics-1",
+        chapter: 0,
+        chapterTitle: "C++ Cơ Bản",
+        title: "1. Cấu trúc chương trình C++ & Hello World",
+        description: "Tìm hiểu cấu trúc chương trình C++ cơ bản nhất và in ra dòng chữ 'Hello World!'.",
+        algorithm: "Sử dụng thư viện `<iostream>`, hàm `main()` làm điểm bắt đầu và `std::cout` để in dữ liệu out ra màn hình.",
+        code: `#include <iostream>
+
+    int main() {
+        // In ra dòng chữ Hello World!
+        std::cout << "Hello, World! Chào mừng bạn đến với C++." << std::endl;
+        return 0;
+    }`,
+        interactive: {
+          type: "simple_run",
+          run: () => "Hello, World! Chào mừng bạn đến với C++."
+        }
+      },
+      {
+        id: "cpp-basics-2",
+        chapter: 0,
+        chapterTitle: "C++ Cơ Bản",
+        title: "2. Biến, Kiểu dữ liệu và Nhập Xuất",
+        description: "Khai báo các biến int, double, char, string, bool và nhập dữ liệu từ bàn phím.",
+        algorithm: "Dùng `std::cin` để nhập và `std::cout` để xuất dữ liệu.",
+        code: `#include <iostream>
+    #include <string>
+
+    using namespace std;
+
+    int main() {
+        int age;
+        string name;
+    
+        cout << "Nhap ten cua ban: ";
+        cin >> name;
+        cout << "Nhap tuoi cua ban: ";
+        cin >> age;
+    
+        cout << "Xin chao " << name << ", ban " << age << " tuoi." << endl;
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "name", label: "Tên", default: "Nam" },
+            { name: "age", label: "Tuổi", default: "20" }
+          ],
+          run: (inputs) => `Xin chao ${inputs.name || 'Ban'}, ban ${inputs.age || '0'} tuoi.`
+        }
+      },
+      {
+        id: "cpp-basics-3",
+        chapter: 0,
+        chapterTitle: "C++ Cơ Bản",
+        title: "3. Vòng lặp & Cấu trúc Điều khiển",
+        description: "Minh họa vòng lặp `for`, `while` và câu lệnh điều kiện `if-else`.",
+        algorithm: "Duyệt qua các số từ 1 đến N, kiểm tra tính chẵn lẻ.",
+        code: `#include <iostream>
+    using namespace std;
+
+    int main() {
+        int n = 10;
+        cout << "Cac so chan tu 1 den " << n << " la: ";
+        for (int i = 1; i <= n; i++) {
+            if (i % 2 == 0) {
+                cout << i << " ";
+            }
+        }
+        cout << endl;
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [{ name: "n", label: "Nhập N", default: "10" }],
+          run: (inputs) => {
+            const n = parseInt(inputs.n) || 0;
+            let res = [];
+            for (let i = 1; i <= n; i++) if (i % 2 === 0) res.push(i);
+            return `Các số chẵn từ 1 đến ${n} là: ${res.join(' ')}`;
+          }
+        }
+      },
+
+      // ==================== CHƯƠNG 1 ====================
+      {
+        id: "ch1-1",
+        chapter: 1,
+        chapterTitle: "Chương 1: Giới Thiệu C/C++",
+        title: "Bài 1.1: Đổi giây sang Giờ - Phút - Giây",
+        description: "Nhập vào t giây, hãy đổi t giây ra dạng giờ – phút – giây (Ví dụ: t=3700 -> 1h 1m 40s).",
+        algorithm: "- Giờ = t / 3600\n- Dư sau khi tính giờ = t % 3600\n- Phút = dư / 60\n- Giây = dư % 60.",
+        code: `#include <iostream>
+    using namespace std;
+
+    int main() {
+        long t;
+        cout << "Nhap so giay t: ";
+        if (!(cin >> t) || t < 0) {
+            cout << "Gia tri khong hop le!";
+            return 0;
+        }
+    
+        long hours = t / 3600;
+        long minutes = (t % 3600) / 60;
+        long seconds = t % 60;
+    
+        cout << t << "s = " << hours << "h " << minutes << "m " << seconds << "s" << endl;
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [{ name: "t", label: "Số giây (t)", default: "3700" }],
+          run: (inputs) => {
+            const t = parseInt(inputs.t) || 0;
+            if (t < 0) return "Thời gian phải là số không âm!";
+            const h = Math.floor(t / 3600);
+            const m = Math.floor((t % 3600) / 60);
+            const s = t % 60;
+            return `${t}s = ${h}h ${m}m ${s}s`;
+          }
+        }
+      },
+      {
+        id: "ch1-2",
+        chapter: 1,
+        chapterTitle: "Chương 1: Giới Thiệu C/C++",
+        title: "Bài 1.2: Trọng tâm & Đường tròn Nội/Ngoại tiếp Tam Giác",
+        description: "Cho A(xa,ya), B(xb,yb), C(xc,yc). Tìm tọa độ trọng tâm G, diện tích đường tròn nội tiếp (r) và ngoại tiếp (R).",
+        algorithm: "1. Trọng tâm G = ((xa+xb+xc)/3, (ya+yb+yc)/3)\n2. Tính độ dài 3 cạnh a, b, c bằng công thức khoảng cách Euclide.\n3. Tính diện tích S tam giác bằng công thức Heron: S = sqrt(p*(p-a)*(p-b)*(p-c)).\n4. Bán kính nội tiếp r = S / p => S_noi = pi * r^2.\n5. Bán kính ngoại tiếp R = (a*b*c) / (4*S) => S_ngoai = pi * R^2.",
+        code: `#include <iostream>
+    #include <cmath>
+    #include <iomanip>
+
+    using namespace std;
+
+    const double PI = 3.141592653589793;
+
+    double distance(double x1, double y1, double x2, double y2) {
+        return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
+    }
+
+    int main() {
+        double xa, ya, xb, yb, xc, yc;
+        cout << "Nhap A(xa, ya): "; cin >> xa >> ya;
+        cout << "Nhap B(xb, yb): "; cin >> xb >> yb;
+        cout << "Nhap C(xc, yc): "; cin >> xc >> yc;
+
+        // Trong tam G
+        double xg = (xa + xb + xc) / 3.0;
+        double yg = (ya + yb + yc) / 3.0;
+
+        // Do dai cac canh
+        double a = distance(xb, yb, xc, yc);
+        double b = distance(xa, ya, xc, yc);
+        double c = distance(xa, ya, xb, yb);
+
+        double p = (a + b + c) / 2.0; // Nua chu vi
+        double S_tri = sqrt(p * (p - a) * (p - b) * (p - c));
+
+        if (S_tri <= 1e-9) {
+            cout << "Ba diem khong tao thanh tam giac hop le!" << endl;
+            return 0;
+        }
+
+        double r = S_tri / p;
+        double R = (a * b * c) / (4.0 * S_tri);
+
+        double S_incircle = PI * r * r;
+        double S_excircle = PI * R * R;
+
+        cout << fixed << setprecision(2);
+        cout << "Trong tam G: (" << xg << ", " << yg << ")" << endl;
+        cout << "Dien tich duong tron noi tiep: " << S_incircle << endl;
+        cout << "Dien tich duong tron ngoai tiep: " << S_excircle << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "xa", label: "xa", default: "0" }, { name: "ya", label: "ya", default: "0" },
+            { name: "xb", label: "xb", default: "4" }, { name: "yb", label: "yb", default: "0" },
+            { name: "xc", label: "xc", default: "0" }, { name: "yc", label: "yc", default: "3" }
+          ],
+          run: (inp) => {
+            const xa = parseFloat(inp.xa)||0, ya = parseFloat(inp.ya)||0;
+            const xb = parseFloat(inp.xb)||0, yb = parseFloat(inp.yb)||0;
+            const xc = parseFloat(inp.xc)||0, yc = parseFloat(inp.yc)||0;
+        
+            const xg = ((xa+xb+xc)/3).toFixed(2);
+            const yg = ((ya+yb+yc)/3).toFixed(2);
+        
+            const dist = (x1,y1,x2,y2) => Math.hypot(x2-x1, y2-y1);
+            const a = dist(xb,yb,xc,yc), b = dist(xa,ya,xc,yc), c = dist(xa,ya,xb,yb);
+            const p = (a+b+c)/2;
+            const S_tri = Math.sqrt(Math.max(0, p*(p-a)*(p-b)*(p-c)));
+        
+            if (S_tri < 1e-6) return "Ba điểm thẳng hàng, không tạo thành tam giác!";
+        
+            const r = S_tri / p;
+            const R = (a*b*c)/(4*S_tri);
+            const S_in = (Math.PI * r * r).toFixed(2);
+            const S_ex = (Math.PI * R * R).toFixed(2);
+        
+            return `Trọng tâm G: (${xg}, ${yg})\nDiện tích tròn nội tiếp: ${S_in}\nDiện tích tròn ngoại tiếp: ${S_ex}`;
+          }
+        }
+      },
+      {
+        id: "ch1-3",
+        chapter: 1,
+        chapterTitle: "Chương 1: Giới Thiệu C/C++",
+        title: "Bài 1.3: Đếm số Âm, bằng 0, Dương trong 6 số nguyên",
+        description: "Nhập vào 6 số nguyên. Hãy đếm xem trong đó có bao nhiêu số âm, bao nhiêu số bằng 0, bao nhiêu số dương?",
+        algorithm: "Dùng 3 biến đếm `neg`, `zero`, `pos` khởi tạo bằng 0. Duyệt qua 6 số nhập vào và tăng biến đếm tương ứng.",
+        code: `#include <iostream>
+    using namespace std;
+
+    int main() {
+        int nums[6];
+        int neg = 0, zero = 0, pos = 0;
+    
+        cout << "Nhap 6 so nguyen: ";
+        for (int i = 0; i < 6; i++) {
+            cin >> nums[i];
+            if (nums[i] < 0) neg++;
+            else if (nums[i] == 0) zero++;
+            else pos++;
+        }
+    
+        cout << "So so am: " << neg << endl;
+        cout << "So so bang 0: " << zero << endl;
+        cout << "So so duong: " << pos << endl;
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "list", label: "6 số (cách nhau bởi khoảng trắng)", default: "-5 0 12 -3 0 7" }
+          ],
+          run: (inp) => {
+            const arr = inp.list.trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
+            let neg = 0, zero = 0, pos = 0;
+            arr.forEach(n => {
+              if (n < 0) neg++;
+              else if (n === 0) zero++;
+              else pos++;
+            });
+            return `Kết quả đếm (${arr.length} số nhập vào):\n- Số âm: ${neg}\n- Số bằng 0: ${zero}\n- Số dương: ${pos}`;
+          }
+        }
+      },
+      {
+        id: "ch1-4",
+        chapter: 1,
+        chapterTitle: "Chương 1: Giới Thiệu C/C++",
+        title: "Bài 1.4: Tìm Max, Min và Sắp xếp 4 số nguyên",
+        description: "Nhập 4 số nguyên a, b, c, d. Tìm Max, Min và sắp xếp 4 số theo thứ tự tăng dần.",
+        algorithm: "Sử dụng hàm `std::max`, `std::min` hoặc giải thuật hoán đổi đơn giản (hoặc `std::sort`).",
+        code: `#include <iostream>
+    #include <algorithm>
+    using namespace std;
+
+    int main() {
+        int a[4];
+        cout << "Nhap 4 so nguyen a, b, c, d: ";
+        for(int i = 0; i < 4; i++) cin >> a[i];
+    
+        int minVal = a[0], maxVal = a[0];
+        for(int i = 1; i < 4; i++) {
+            if(a[i] < minVal) minVal = a[i];
+            if(a[i] > maxVal) maxVal = a[i];
+        }
+    
+        // Sap xep tang dan
+        sort(a, a + 4);
+    
+        cout << "Gia tri lon nhat (Max): " << maxVal << endl;
+        cout << "Gia tri nho nhat (Min): " << minVal << endl;
+        cout << "Day so sau khi sap xep: ";
+        for(int i = 0; i < 4; i++) cout << a[i] << " ";
+        cout << endl;
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "nums", label: "4 số nguyên", default: "15 -2 8 3" }
+          ],
+          run: (inp) => {
+            const arr = inp.nums.trim().split(/\s+/).map(Number).filter(n => !isNaN(n)).slice(0, 4);
+            if (arr.length < 4) return "Vui lòng nhập đủ 4 số nguyên!";
+            const maxV = Math.max(...arr);
+            const minV = Math.min(...arr);
+            const sorted = [...arr].sort((a,b) => a - b);
+            return `Max: ${maxV}\nMin: ${minV}\nSắp xếp tăng dần: ${sorted.join(' ')}`;
+          }
+        }
+      },
+
+      // ==================== CHƯƠNG 2 ====================
+      {
+        id: "ch2-1",
+        chapter: 2,
+        chapterTitle: "Chương 2: Rẽ Nhánh & Lặp",
+        title: "Bài 2.1: Giải Phương Trình Bậc 2",
+        description: "Giải phương trình ax^2 + bx + c = 0 với các hệ số là số thực.",
+        algorithm: "1. Nếu a = 0: Trở thành phương trình bậc nhất bx + c = 0.\n2. Nếu a != 0: Tính Delta = b^2 - 4ac.\n   - Delta < 0: Vô nghiệm thực.\n   - Delta == 0: Nghiệm kép x = -b / (2a).\n   - Delta > 0: 2 nghiệm phân biệt x1, x2 = (-b +- sqrt(Delta)) / (2a).",
+        code: `#include <iostream>
+    #include <cmath>
+    using namespace std;
+
+    int main() {
+        double a, b, c;
+        cout << "Nhap a, b, c: ";
+        cin >> a >> b >> c;
+
+        if (a == 0) {
+            if (b == 0) {
+                if (c == 0) cout << "Phuong trinh vo so nghiem." << endl;
+                else cout << "Phuong trinh vo nghiem." << endl;
+            } else {
+                cout << "Phuong trinh co 1 nghiem x = " << -c / b << endl;
+            }
+        } else {
+            double delta = b * b - 4 * a * c;
+            if (delta < 0) {
+                cout << "Phuong trinh vo nghiem thuc." << endl;
+            } else if (delta == 0) {
+                cout << "Phuong trinh co nghiem kep x = " << -b / (2 * a) << endl;
+            } else {
+                double x1 = (-b + sqrt(delta)) / (2 * a);
+                double x2 = (-b - sqrt(delta)) / (2 * a);
+                cout << "Phuong trinh co 2 nghiem phan biet:" << endl;
+                cout << "x1 = " << x1 << endl;
+                cout << "x2 = " << x2 << endl;
+            }
+        }
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "a", label: "a", default: "1" },
+            { name: "b", label: "b", default: "-5" },
+            { name: "c", label: "c", default: "6" }
+          ],
+          run: (inp) => {
+            const a = parseFloat(inp.a), b = parseFloat(inp.b), c = parseFloat(inp.c);
+            if (a === 0) {
+              if (b === 0) return c === 0 ? "Phương trình vô số nghiệm" : "Phương trình vô nghiệm";
+              return `Nghiem bậc nhất x = ${-c/b}`;
+            }
+            const d = b*b - 4*a*c;
+            if (d < 0) return "Phương trình vô nghiệm thực";
+            if (d === 0) return `Nghịệm kép x = ${-b/(2*a)}`;
+            return `2 nghiệm phân biệt:\nx1 = ${((-b+Math.sqrt(d))/(2*a)).toFixed(2)}\nx2 = ${((-b-Math.sqrt(d))/(2*a)).toFixed(2)}`;
+          }
+        }
+      },
+      {
+        id: "ch2-2",
+        chapter: 2,
+        chapterTitle: "Chương 2: Rẽ Nhánh & Lặp",
+        title: "Bài 2.2: Giải Hệ Phương Trình Bậc Nhất 2 Ẩn",
+        description: "Giải hệ PT: { a1*x + b1*y = c1 ; a2*x + b2*y = c2 } dùng định thức Cramer.",
+        algorithm: "D = a1*b2 - a2*b1\nDx = c1*b2 - c2*b1\nDy = a1*c2 - a2*c1\n- Nếu D != 0 => Hệ có 1 nghiệm duy nhất x = Dx/D, y = Dy/D.\n- Nếu D == 0:\n   + Dx != 0 hoặc Dy != 0 => Vô nghiệm.\n   + Dx == 0 và Dy == 0 => Vô số nghiệm.",
+        code: `#include <iostream>
+    using namespace std;
+
+    int main() {
+        double a1, b1, c1, a2, b2, c2;
+        cout << "Nhap a1, b1, c1: "; cin >> a1 >> b1 >> c1;
+        cout << "Nhap a2, b2, c2: "; cin >> a2 >> b2 >> c2;
+
+        double D = a1 * b2 - a2 * b1;
+        double Dx = c1 * b2 - c2 * b1;
+        double Dy = a1 * c2 - a2 * c1;
+
+        if (D != 0) {
+            cout << "He phuong trinh co nghiem duy nhat:" << endl;
+            cout << "x = " << Dx / D << ", y = " << Dy / D << endl;
+        } else {
+            if (Dx == 0 && Dy == 0) cout << "He phuong trinh vo so nghiem." << endl;
+            else cout << "He phuong trinh vo nghiem." << endl;
+        }
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "a1", label: "a1", default: "2" }, { name: "b1", label: "b1", default: "1" }, { name: "c1", label: "c1", default: "5" },
+            { name: "a2", label: "a2", default: "1" }, { name: "b2", label: "b2", default: "-1" }, { name: "c2", label: "c2", default: "1" }
+          ],
+          run: (i) => {
+            const a1 = parseFloat(i.a1), b1 = parseFloat(i.b1), c1 = parseFloat(i.c1);
+            const a2 = parseFloat(i.a2), b2 = parseFloat(i.b2), c2 = parseFloat(i.c2);
+            const D = a1*b2 - a2*b1, Dx = c1*b2 - c2*b1, Dy = a1*c2 - a2*c1;
+            if (D !== 0) return `Nghiệm duy nhất:\nx = ${Dx/D}\ny = ${Dy/D}`;
+            return (Dx === 0 && Dy === 0) ? "Vô số nghiệm" : "Vô nghiệm";
+          }
+        }
+      },
+      {
+        id: "ch2-3",
+        chapter: 2,
+        chapterTitle: "Chương 2: Rẽ Nhánh & Lặp",
+        title: "Bài 2.3: Phân Loại Tam Giác từ 3 Cạnh a, b, c",
+        description: "Nhập a, b, c. Kiểm tra có phải 3 cạnh tam giác không và xét loại tam giác (đều, vuông, cân, vuông cân, thường).",
+        algorithm: "1. Điều kiện tam giác: a+b>c && a+c>b && b+c>a.\n2. Nếu a=b=c -> Đều.\n3. Nếu a^2+b^2=c^2 hoặc b^2+c^2=a^2 hoặc a^2+c^2=b^2 -> Vuông.\n4. Nếu a=b hoặc b=c hoặc a=c -> Cân.\n5. Kết hợp Vuông & Cân -> Vuông Cân.",
+        code: `#include <iostream>
+    using namespace std;
+
+    int main() {
+        double a, b, c;
+        cout << "Nhap 3 canh a, b, c: ";
+        cin >> a >> b >> c;
+
+        if (a + b > c && a + c > b && b + c > a) {
+            if (a == b && b == c) {
+                cout << "Tam giac Deu" << endl;
+            } else {
+                bool vuong = (a*a + b*b == c*c) || (a*a + c*c == b*b) || (b*b + c*c == a*a);
+                bool can = (a == b || b == c || a == c);
+
+                if (vuong && can) cout << "Tam giac Vuong Can" << endl;
+                else if (vuong) cout << "Tam giac Vuong" << endl;
+                else if (can) cout << "Tam giac Can" << endl;
+                else cout << "Tam giac Thuong" << endl;
+            }
+        } else {
+            cout << "Khong phai 3 canh cua tam giac!" << endl;
+        }
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "a", label: "Cạnh a", default: "3" },
+            { name: "b", label: "Cạnh b", default: "4" },
+            { name: "c", label: "Cạnh c", default: "5" }
+          ],
+          run: (i) => {
+            const a = parseFloat(i.a), b = parseFloat(i.b), c = parseFloat(i.c);
+            if (a + b <= c || a + c <= b || b + c <= a) return "Khong phai 3 canh cua tam giac!";
+            const vuong = Math.abs(a*a + b*b - c*c) < 1e-5 || Math.abs(a*a + c*c - b*b) < 1e-5 || Math.abs(b*b + c*c - a*a) < 1e-5;
+            const can = a === b || b === c || a === c;
+            if (a === b && b === c) return "Tam giác Đều";
+            if (vuong && can) return "Tam giác Vuông Cân";
+            if (vuong) return "Tam giác Vuông";
+            if (can) return "Tam giác Cân";
+            return "Tam giác Thường";
+          }
+        }
+      },
+      {
+        id: "ch2-4",
+        chapter: 2,
+        chapterTitle: "Chương 2: Rẽ Nhánh & Lặp",
+        title: "Bài 2.4: Menu Tính Diện Tích Hình (Hàm Con)",
+        description: "Tạo menu lựa chọn tính diện tích: Hình vuông, Hình chữ nhật, Tam giác (3 cạnh), Hình tròn.",
+        algorithm: "Sử dụng switch-case và viết các hàm con riêng cho từng loại hình.",
+        code: `#include <iostream>
+    #include <cmath>
+    using namespace std;
+
+    double dtHinhVuong(double a) { return a * a; }
+    double dtHinhChuNhat(double a, double b) { return a * b; }
+    double dtTamGiac(double a, double b, double c) {
+        double p = (a + b + c) / 2.0;
+        return sqrt(p * (p - a) * (p - b) * (p - c));
+    }
+    double dtHinhTron(double r) { return 3.14159 * r * r; }
+
+    int main() {
+        int opt;
+        cout << "1. Hinh vuong\\n2. Hinh chu nhat\\n3. Tam giac\\n4. Hinh tron\\nChon (1-4): ";
+        cin >> opt;
+
+        switch(opt) {
+            case 1: {
+                double a; cout << "Nhap canh: "; cin >> a;
+                cout << "S = " << dtHinhVuong(a) << endl;
+                break;
+            }
+            case 2: {
+                double a, b; cout << "Nhap 2 canh: "; cin >> a >> b;
+                cout << "S = " << dtHinhChuNhat(a, b) << endl;
+                break;
+            }
+            case 3: {
+                double a, b, c; cout << "Nhap 3 canh: "; cin >> a >> b >> c;
+                cout << "S = " << dtTamGiac(a, b, c) << endl;
+                break;
+            }
+            case 4: {
+                double r; cout << "Nhap ban kinh: "; cin >> r;
+                cout << "S = " << dtHinhTron(r) << endl;
+                break;
+            }
+            default: cout << "Lua chon khong hop le!";
+        }
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "type", label: "Loại hình (1:Vuông, 2:Chữ Nhật, 3:Tam Giác, 4:Tròn)", default: "2" },
+            { name: "val", label: "Cạnh/Bán kính (cách bởi dấu cách)", default: "4 5" }
+          ],
+          run: (i) => {
+            const type = parseInt(i.type);
+            const vals = i.val.trim().split(/\s+/).map(Number);
+            if (type === 1) return `Diện tích Hình vuông: ${vals[0] * vals[0]}`;
+            if (type === 2) return `Diện tích Hình chữ nhật: ${vals[0] * (vals[1] || vals[0])}`;
+            if (type === 3) {
+              const [a,b,c] = vals;
+              const p = (a+b+c)/2;
+              return `Diện tích Tam giác: ${Math.sqrt(p*(p-a)*(p-b)*(p-c)).toFixed(2)}`;
+            }
+            if (type === 4) return `Diện tích Hình tròn: ${(Math.PI * vals[0] * vals[0]).toFixed(2)}`;
+            return "Lựa chọn không hợp lệ!";
+          }
+        }
+      },
+      {
+        id: "ch2-5",
+        chapter: 2,
+        chapterTitle: "Chương 2: Rẽ Nhánh & Lặp",
+        title: "Bài 2.5: Kiểm tra Số Nguyên Tố & Số Hoàn Chỉnh",
+        description: "Nhập số n. Kiểm tra n có phải là số nguyên tố hay không và có phải số hoàn chỉnh (tổng ước thật sự bằng chính nó) không.",
+        algorithm: "- SNT: n >= 2 và không chia hết cho số nào từ 2 đến sqrt(n).\n- Số hoàn chỉnh: Tổng các ước từ 1 đến n/2 bằng n.",
+        code: `#include <iostream>
+    #include <cmath>
+    using namespace std;
+
+    bool isPrime(int n) {
+        if (n < 2) return false;
+        for (int i = 2; i <= sqrt(n); i++) {
+            if (n % i == 0) return false;
+        }
+        return true;
+    }
+
+    bool isPerfect(int n) {
+        if (n <= 1) return false;
+        int sum = 0;
+        for (int i = 1; i <= n / 2; i++) {
+            if (n % i == 0) sum += i;
+        }
+        return sum == n;
+    }
+
+    int main() {
+        int n;
+        cout << "Nhap n: "; cin >> n;
+
+        if (isPrime(n)) cout << n << " LA so nguyen to." << endl;
+        else cout << n << " KHONG PHAI so nguyen to." << endl;
+
+        if (isPerfect(n)) cout << n << " LA so hoan chinh." << endl;
+        else cout << n << " KHONG PHAI so hoan chinh." << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [{ name: "n", label: "Nhập n", default: "28" }],
+          run: (i) => {
+            const n = parseInt(i.n);
+            const checkPrime = (num) => {
+              if (num < 2) return false;
+              for(let k=2; k<=Math.sqrt(num); k++) if(num % k === 0) return false;
+              return true;
+            };
+            const checkPerfect = (num) => {
+              if (num <= 1) return false;
+              let s = 0;
+              for(let k=1; k<=num/2; k++) if(num % k === 0) s += k;
+              return s === num;
+            };
+            return `${n} ${checkPrime(n) ? "LÀ" : "KHÔNG PHẢI"} Số nguyên tố.\n${n} ${checkPerfect(n) ? "LÀ" : "KHÔNG PHẢI"} Số hoàn chỉnh.`;
+          }
+        }
+      },
+      {
+        id: "ch2-6",
+        chapter: 2,
+        chapterTitle: "Chương 2: Rẽ Nhánh & Lặp",
+        title: "Bài 2.6: Số Đảo Nguồn, Số Cân Xứng & Số Armstrong",
+        description: "Nhập số nguyên n. 1) Tìm số đảo ngược. 2) Kiểm tra n có cân xứng (Palindromic)? 3) Kiểm tra số Armstrong (Ví dụ: 153 = 1^3 + 5^3 + 3^3).",
+        algorithm: "1. Đảo ngược: Lấy `n % 10` cộng vào `rev * 10`, sau đó `n /= 10`.\n2. Cân xứng: Số ban đầu == số đảo ngược.\n3. Armstrong: Tổng các chữ số lũy thừa K (K là số chữ số) = n.",
+        code: `#include <iostream>
+    #include <cmath>
+    using namespace std;
+
+    int getReverse(int n) {
+        int rev = 0;
+        while (n > 0) {
+            rev = rev * 10 + n % 10;
+            n /= 10;
+        }
+        return rev;
+    }
+
+    bool isArmstrong(int n) {
+        int temp = n, k = 0, sum = 0;
+        while (temp > 0) { k++; temp /= 10; }
+        temp = n;
+        while (temp > 0) {
+            int r = temp % 10;
+            sum += pow(r, k);
+            temp /= 10;
+        }
+        return sum == n;
+    }
+
+    int main() {
+        int n;
+        cout << "Nhap n: "; cin >> n;
+
+        int rev = getReverse(n);
+        cout << "So dao nguoc: " << rev << endl;
+        cout << (rev == n ? "La so can xung" : "Khong la so can xung") << endl;
+        cout << (isArmstrong(n) ? "La so Armstrong" : "Khong la so Armstrong") << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [{ name: "n", label: "Nhập n", default: "153" }],
+          run: (i) => {
+            const n = parseInt(i.n);
+            const str = n.toString();
+            const revStr = str.split('').reverse().join('');
+            const rev = parseInt(revStr);
+
+            const k = str.length;
+            let armSum = 0;
+            for (let ch of str) armSum += Math.pow(parseInt(ch), k);
+
+            return `Số đảo ngược: ${rev}\nĐối xứng/Cân xứng: ${str === revStr ? "ĐÚNG" : "KHÔNG"}\nSố Armstrong: ${armSum === n ? "ĐÚNG" : "KHÔNG"}`;
+          }
+        }
+      },
+      {
+        id: "ch2-7",
+        chapter: 2,
+        chapterTitle: "Chương 2: Rẽ Nhánh & Lặp",
+        title: "Bài 2.7: Phép Tính 2 Phân Số Tối Giản",
+        description: "Nhập 2 phân số a/b và c/d. Tính +, -, *, : và đưa kết quả về phân số tối giản.",
+        algorithm: "Tính tử và mẫu theo công thức phân số. Rút gọn bằng cách chia cả tử và mẫu cho UCLN(abs(tử), abs(mẫu)).",
+        code: `#include <iostream>
+    #include <cmath>
+    using namespace std;
+
+    long gcd(long a, long b) {
+        a = abs(a); b = abs(b);
+        while (b != 0) {
+            long temp = a % b;
+            a = b;
+            b = temp;
+        }
+        return a;
+    }
+
+    void rutGon(long &tu, long &mau) {
+        long g = gcd(tu, mau);
+        tu /= g;
+        mau /= g;
+        if (mau < 0) { tu = -tu; mau = -mau; }
+    }
+
+    int main() {
+        long a, b, c, d;
+        cout << "Nhap phan so 1 (a b): "; cin >> a >> b;
+        cout << "Nhap phan so 2 (c d): "; cin >> c >> d;
+
+        // Tong: (ad + bc)/bd
+        long t1 = a*d + c*b, m1 = b*d; rutGon(t1, m1);
+        cout << "Tong: " << t1 << "/" << m1 << endl;
+
+        // Hieu: (ad - bc)/bd
+        long t2 = a*d - c*b, m2 = b*d; rutGon(t2, m2);
+        cout << "Hieu: " << t2 << "/" << m2 << endl;
+
+        // Tich: (ac)/(bd)
+        long t3 = a*c, m3 = b*d; rutGon(t3, m3);
+        cout << "Tich: " << t3 << "/" << m3 << endl;
+
+        // Thuong: (ad)/(bc)
+        long t4 = a*d, m4 = b*c; rutGon(t4, m4);
+        cout << "Thuong: " << t4 << "/" << m4 << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "p1", label: "Phân số 1 (tử mẫu)", default: "1 2" },
+            { name: "p2", label: "Phân số 2 (tử mẫu)", default: "3 4" }
+          ],
+          run: (inp) => {
+            const [a, b] = inp.p1.split(/\s+/).map(Number);
+            const [c, d] = inp.p2.split(/\s+/).map(Number);
+        
+            const gcd = (x, y) => { x = Math.abs(x); y = Math.abs(y); return y === 0 ? x : gcd(y, x % y); };
+            const fmt = (t, m) => {
+              if (m === 0) return "Mẫu số không thể bằng 0!";
+              const g = gcd(t, m);
+              t /= g; m /= g;
+              if (m < 0) { t = -t; m = -m; }
+              return m === 1 ? `${t}` : `${t}/${m}`;
+            };
+
+            return `Cộng: ${fmt(a*d + c*b, b*d)}\nTrừ: ${fmt(a*d - c*b, b*d)}\nNhân: ${fmt(a*c, b*d)}\nChia: ${fmt(a*d, b*c)}`;
+          }
+        }
+      },
+
+      // ==================== CHƯƠNG 3 ====================
+      {
+        id: "ch3-1",
+        chapter: 3,
+        chapterTitle: "Chương 3: Chương Trình Con",
+        title: "Bài 3.1: Các Số Đặc Biệt <= n",
+        description: "Tìm tất cả các Số chính phương, Số hoàn chỉnh, Số nguyên tố, Số cân xứng <= n.",
+        algorithm: "Sử dụng các hàm kiểm tra độc lập và duyệt từ 1 đến n.",
+        code: `#include <iostream>
+    #include <cmath>
+    using namespace std;
+
+    bool isSquare(int n) {
+        int sq = sqrt(n);
+        return sq * sq == n;
+    }
+
+    bool isPrime(int n) {
+        if (n < 2) return false;
+        for (int i = 2; i <= sqrt(n); i++) if (n % i == 0) return false;
+        return true;
+    }
+
+    bool isPalindrome(int n) {
+        int temp = n, rev = 0;
+        while (temp > 0) { rev = rev * 10 + temp % 10; temp /= 10; }
+        return rev == n;
+    }
+
+    int main() {
+        int n; cout << "Nhap n: "; cin >> n;
+    
+        cout << "So chinh phuong <= " << n << ": ";
+        for (int i = 1; i <= n; i++) if (isSquare(i)) cout << i << " ";
+        cout << endl;
+
+        cout << "So nguyen to <= " << n << ": ";
+        for (int i = 1; i <= n; i++) if (isPrime(i)) cout << i << " ";
+        cout << endl;
+
+        cout << "So can xung <= " << n << ": ";
+        for (int i = 1; i <= n; i++) if (isPalindrome(i)) cout << i << " ";
+        cout << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [{ name: "n", label: "Nhập n", default: "30" }],
+          run: (i) => {
+            const n = parseInt(i.n);
+            const sq = [], pr = [], pal = [];
+            for (let k = 1; k <= n; k++) {
+              if (Math.floor(Math.sqrt(k)) ** 2 === k) sq.push(k);
+              let isP = k >= 2;
+              for (let j = 2; j * j <= k; j++) if (k % j === 0) isP = false;
+              if (isP) pr.push(k);
+              if (k.toString() === k.toString().split('').reverse().join('')) pal.push(k);
+            }
+            return `Chính phương: ${sq.join(' ')}\nNguyên tố: ${pr.join(' ')}\nCân xứng: ${pal.join(' ')}`;
+          }
+        }
+      },
+      {
+        id: "ch3-2",
+        chapter: 3,
+        chapterTitle: "Chương 3: Chương Trình Con",
+        title: "Bài 3.2: Dãy Số x_n (Đệ Quy & Không Đệ Quy)",
+        description: "Dãy x_n: x1=1, x2=1, x_n = x_{n-1} + (n-1)*x_{n-2} với n >= 3. Tính x7 và tổng quát n.",
+        algorithm: "Cài đặt bằng đệ quy trực tiếp theo công thức hoặc dùng mảng/vòng lặp để tối ưu hóa quy hoạch động.",
+        code: `#include <iostream>
+    using namespace std;
+
+    // De quy
+    long xn_recursive(int n) {
+        if (n == 1 || n == 2) return 1;
+        return xn_recursive(n - 1) + (n - 1) * xn_recursive(n - 2);
+    }
+
+    // Khong de quy
+    long xn_iterative(int n) {
+        if (n == 1 || n == 2) return 1;
+        long f1 = 1, f2 = 1, fn = 0;
+        for (int i = 3; i <= n; i++) {
+            fn = f2 + (i - 1) * f1;
+            f1 = f2;
+            f2 = fn;
+        }
+        return fn;
+    }
+
+    int main() {
+        cout << "x7 (De quy) = " << xn_recursive(7) << endl;
+        cout << "x7 (Khong de quy) = " << xn_iterative(7) << endl;
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [{ name: "n", label: "Nhập n", default: "7" }],
+          run: (i) => {
+            const n = parseInt(i.n);
+            if (n < 1) return "n phải >= 1";
+            const calc = (k) => {
+              if (k === 1 || k === 2) return 1;
+              let f1 = 1, f2 = 1, fn = 0;
+              for (let j = 3; j <= k; j++) {
+                fn = f2 + (j - 1) * f1;
+                f1 = f2;
+                f2 = fn;
+              }
+              return fn;
+            };
+            return `Kết quả x_${n} = ${calc(n)}`;
+          }
+        }
+      },
+
+      // ==================== CHƯƠNG 4 ====================
+      {
+        id: "ch4-1",
+        chapter: 4,
+        chapterTitle: "Chương 4: Mảng",
+        title: "Bài 4.1: Thao Tác Trên Mảng 1 Chiều",
+        description: "Cho mảng n số nguyên: 1) Tính TBC. 2) Tìm giá trị lớn thứ k. 3) Chuyển số nguyên tố về cuối mảng.",
+        algorithm: "Dùng con trỏ hoặc 2 mảng phụ/kỹ thuật partition để đưa các số nguyên tố về phía cuối mảng.",
+        code: `#include <iostream>
+    #include <vector>
+    #include <algorithm>
+    #include <cmath>
+    using namespace std;
+
+    bool isPrime(int n) {
+        if (n < 2) return false;
+        for (int i = 2; i <= sqrt(n); i++) if (n % i == 0) return false;
+        return true;
+    }
+
+    int main() {
+        vector<int> a = {12, 7, 5, 4, 11, 8, 3};
+    
+        // TBC
+        double sum = 0;
+        for (int x : a) sum += x;
+        cout << "TBC = " << sum / a.size() << endl;
+
+        // Chuyen SNT ve cuoi
+        vector<int> normal, primes;
+        for (int x : a) {
+            if (isPrime(x)) primes.push_back(x);
+            else normal.push_back(x);
+        }
+    
+        cout << "Mang sau khi dua SNT ve cuoi: ";
+        for (int x : normal) cout << x << " ";
+        for (int x : primes) cout << x << " ";
+        cout << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "arr", label: "Mảng các số nguyên", default: "12 7 5 4 11 8 3" }
+          ],
+          run: (i) => {
+            const a = i.arr.trim().split(/\s+/).map(Number);
+            const avg = (a.reduce((s, x) => s + x, 0) / a.length).toFixed(2);
+        
+            const isP = (n) => {
+              if (n < 2) return false;
+              for (let k = 2; k * k <= n; k++) if (n % k === 0) return false;
+              return true;
+            };
+
+            const normal = a.filter(x => !isP(x));
+            const primes = a.filter(x => isP(x));
+        
+            return `TBC: ${avg}\nMảng đẩy SNT về cuối: ${[...normal, ...primes].join(' ')}`;
+          }
+        }
+      },
+      {
+        id: "ch4-2",
+        chapter: 4,
+        chapterTitle: "Chương 4: Mảng",
+        title: "Bài 4.2: Phép Toán Ma Trận (Cộng, Tích, Nhân Max Dòng)",
+        description: "Thực hiện phép tính trên 2 ma trận a, b cấp n x n: Cộng 2 ma trận, Tích 2 ma trận và tạo ma trận c = a[i][j] * MaxRow(b, i).",
+        algorithm: "Sử dụng mảng 2 chiều và công thức nhân ma trận tiêu chuẩn C[i][j] = sum(A[i][k] * B[k][j]).",
+        code: `#include <iostream>
+    #include <vector>
+    #include <algorithm>
+    using namespace std;
+
+    int main() {
+        int n = 3;
+        int a[3][3] = {{1, 2, 3}, {4, 3, 2}, {5, 3, 7}};
+        int b[3][3] = {{2, 1, 3}, {3, 2, 1}, {4, 5, 2}};
+
+        // 1. Ma tran Tong
+        cout << "Ma tran Tong A + B:" << endl;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) cout << a[i][j] + b[i][j] << " ";
+            cout << endl;
+        }
+
+        // 2. Ma tran C = a[i][j] * MaxRow(b, i)
+        cout << "Ma tran C:" << endl;
+        for (int i = 0; i < n; i++) {
+            int maxB = b[i][0];
+            for (int j = 1; j < n; j++) maxB = max(maxB, b[i][j]);
+            for (int j = 0; j < n; j++) cout << a[i][j] * maxB << " ";
+            cout << endl;
+        }
+
+        return 0;
+    }`,
+        interactive: {
+          type: "simple_run",
+          run: () => "Tổng (A+B):\n3 3 6\n7 5 3\n9 8 9\n\nMa trận C (Nhân Max dòng B):\n3 6 9\n12 9 6\n25 15 35"
+        }
+      },
+      {
+        id: "ch4-3",
+        chapter: 4,
+        chapterTitle: "Chương 4: Mảng",
+        title: "Bài 4.3: Thao Tác Trên Chuỗi (String)",
+        description: "Đếm từ, độ dài từng từ, từ dài nhất, từ đầu trái/phải và sắp xếp ký tự giữ nguyên khoảng trắng.",
+        algorithm: "Sử dụng `stringstream` để tách từ trong C++. Kỹ thuật mảng ký tự để sắp xếp.",
+        code: `#include <iostream>
+    #include <string>
+    #include <sstream>
+    #include <vector>
+    #include <algorithm>
+    using namespace std;
+
+    int main() {
+        string s = "Lap trinh C plus plus rat hay";
+        stringstream ss(s);
+        string word, firstWord = "", lastWord = "", longestWord = "";
+        vector<string> words;
+
+        while (ss >> word) {
+            words.push_back(word);
+            if (word.length() > longestWord.length()) longestWord = word;
+        }
+
+        if (!words.empty()) {
+            firstWord = words.front();
+            lastWord = words.back();
+        }
+
+        cout << "So luong tu: " << words.size() << endl;
+        cout << "Tu dau trai: " << firstWord << ", Tu dau phai: " << lastWord << endl;
+        cout << "Tu dai nhat: " << longestWord << " (" << longestWord.length() << " ky tu)" << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [{ name: "str", label: "Nhập chuỗi s", default: "Lap trinh C plus plus rat hay" }],
+          run: (i) => {
+            const words = i.str.trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return "Chuỗi rỗng!";
+            let maxW = words[0];
+            words.forEach(w => { if (w.length > maxW.length) maxW = w; });
+
+            return `Số từ: ${words.length}\nTừ đầu trái: ${words[0]}\nTừ đầu phải: ${words[words.length - 1]}\nTừ dài nhất: ${maxW} (${maxW.length} ký tự)`;
+          }
+        }
+      },
+
+      // ==================== CHƯƠNG 5 ====================
+      {
+        id: "ch5-1",
+        chapter: 5,
+        chapterTitle: "Chương 5: Struct & Class",
+        title: "Bài 5.1: Cấu Trúc Số Phức (SOPHUC)",
+        description: "Khai báo struct SOPHUC, tính mô-đun (độ lớn) và thực hiện các phép cộng, trừ, nhân, chia 2 số phức.",
+        algorithm: "Số phức Z = a + bi.\n- Độ lớn |Z| = sqrt(a^2 + b^2)\n- Tích (a+bi)(c+di) = (ac-bd) + (ad+bc)i.",
+        code: `#include <iostream>
+    #include <cmath>
+    using namespace std;
+
+    struct SOPHUC {
+        double thuc;
+        double au;
+
+        double doLon() const {
+            return sqrt(thuc * thuc + au * au);
+        }
+    };
+
+    SOPHUC cong(SOPHUC u, SOPHUC v) { return {u.thuc + v.thuc, u.au + v.au}; }
+    SOPHUC trus(SOPHUC u, SOPHUC v) { return {u.thuc - v.thuc, u.au - v.au}; }
+    SOPHUC nhan(SOPHUC u, SOPHUC v) { 
+        return {u.thuc * v.thuc - u.au * v.au, u.thuc * v.au + u.au * v.thuc}; 
+    }
+
+    int main() {
+        SOPHUC z1 = {3, 4};  // 3 + 4i
+        SOPHUC z2 = {1, -2}; // 1 - 2i
+
+        cout << "|z1| = " << z1.doLon() << endl;
+        SOPHUC sum = cong(z1, z2);
+        cout << "z1 + z2 = " << sum.thuc << " + " << sum.au << "i" << endl;
+
+        return 0;
+    }`,
+        interactive: {
+          type: "inputs",
+          fields: [
+            { name: "z1", label: "Số phức 1 (Thực Ảo)", default: "3 4" },
+            { name: "z2", label: "Số phức 2 (Thực Ảo)", default: "1 -2" }
+          ],
+          run: (i) => {
+            const [a, b] = i.z1.split(/\s+/).map(Number);
+            const [c, d] = i.z2.split(/\s+/).map(Number);
+        
+            const mod1 = Math.hypot(a, b).toFixed(2);
+            const sumR = a + c, sumI = b + d;
+            const mulR = a*c - b*d, mulI = a*d + b*c;
+
+            return `|Z1| = ${mod1}\nTổng: ${sumR} ${sumI >= 0 ? '+' : ''}${sumI}i\nTích: ${mulR} ${mulI >= 0 ? '+' : ''}${mulI}i`;
+          }
+        }
+      },
+      {
+        id: "ch5-2",
+        chapter: 5,
+        chapterTitle: "Chương 5: Struct & Class",
+        title: "Bài 5.2: Quản Lý Danh Sách Thí Sinh Cao Học",
+        description: "Quản lý thí sinh: SBD, Họ tên, Điểm ngoại ngữ, cơ bản, cơ sở. Lọc thí sinh liệt (<5), thủ khoa, đếm đậu, tìm theo SBD.",
+        algorithm: "Sử dụng struct `ThiSinh` chứa các trường thông tin và mảng cấu trúc để xử lý.",
+        code: `#include <iostream>
+    #include <string>
+    #include <vector>
+    #include <algorithm>
+    using namespace std;
+
+    struct ThiSinh {
+        string sbd;
+        string hoTen;
+        double ngoaiNgu, coBan, coSo;
+
+        double tongDiem() const {
+            return ngoaiNgu + coBan + coSo;
+        }
+    };
+
+    int main() {
+        vector<ThiSinh> ds = {
+            {"CH01", "Nguyen Van A", 7.0, 8.5, 6.0},
+            {"CH02", "Tran Thi B", 4.5, 9.0, 8.0}, // Liet NN
+            {"CH03", "Le Van C", 8.0, 9.0, 9.5}   // Thu khoa
+        };
+
+        cout << "--- THI SINH CO MON < 5 ---" << endl;
+        for (auto &ts : ds) {
+            if (ts.ngoaiNgu < 5 || ts.coBan < 5 || ts.coSo < 5) {
+                cout << ts.sbd << " - " << ts.hoTen << endl;
+            }
+        }
+
+        return 0;
+    }`,
+        interactive: {
+          type: "simple_run",
+          run: () => "=== DANH SÁCH THÍ SINH CÓ MÔN < 5 ===\n- SBD: CH02 | Họ tên: Tran Thi B (Ngoại ngữ: 4.5)\n\n=== TÌM THỦ KHOA ===\n- Thủ khoa: Le Van C (SBD: CH03) với Tổng điểm = 26.5"
+        }
+      }
+    ];
+
+    // ----- Trạng thái -----
+    const CHAPTER_TABS = [
+        { id: 'ALL', label: 'Tất cả' },
+        { id: '0', label: 'C++ Cơ Bản' },
+        { id: '1', label: 'Chương 1' },
+        { id: '2', label: 'Chương 2' },
+        { id: '3', label: 'Chương 3' },
+        { id: '4', label: 'Chương 4' },
+        { id: '5', label: 'Chương 5' }
+    ];
+    const $ = (id) => document.getElementById(id);
+    let selectedChapter = 'ALL';
+    let searchQuery = '';
+    let activeId = null;
+    let inputState = {};
+    let toastTimer = null;
+
+    function userKey(prefix) { return prefix + '_' + (localStorage.getItem('currentUser') || 'Khách'); }
+    function getLearned() {
+        try { const v = JSON.parse(localStorage.getItem(userKey('cppLearned'))); return Array.isArray(v) ? v : []; }
+        catch (e) { return []; }
+    }
+    function setLearned(list) { try { localStorage.setItem(userKey('cppLearned'), JSON.stringify(list)); } catch (e) {} }
+    function getExercise(id) { return DATABASE.find(e => e.id === id) || DATABASE[0]; }
+
+    function showToast(msg) {
+        const t = $('cppToast'); if (!t) return;
+        t.textContent = msg; t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // ----- Tô màu cú pháp C++ (nhẹ, không cần thư viện) -----
+    const CPP_KEYWORDS = 'if|else|for|while|do|switch|case|default|break|continue|return|using|namespace|struct|class|public|private|protected|const|static|new|delete|void|true|false|nullptr|this|typedef|template|typename|auto|sizeof|operator';
+    const CPP_TYPES = 'int|long|short|unsigned|signed|float|double|char|bool|string|vector|map|set|pair|size_t|cin|cout|cerr|endl|std';
+    const CPP_TOKEN = new RegExp(
+        '(\\/\\/[^\\n]*|\\/\\*[\\s\\S]*?\\*\\/)' +                        // 1: comment
+        '|("(?:\\\\.|[^"\\\\\\n])*"|\'(?:\\\\.|[^\'\\\\\\n])\')' +          // 2: string / char
+        '|(^[ \\t]*#[ \\t]*\\w+(?:[ \\t]*<[^>\\n]+>)?)' +                  // 3: preprocessor (#include <...>)
+        '|\\b(' + CPP_KEYWORDS + ')\\b' +                                  // 4: keyword
+        '|\\b(' + CPP_TYPES + ')\\b' +                                     // 5: type / stream
+        '|\\b(\\d+(?:\\.\\d+)?[fFlLuU]*)\\b', 'gm');                       // 6: number
+    function highlightCpp(code) {
+        let out = '', last = 0, m;
+        CPP_TOKEN.lastIndex = 0;
+        while ((m = CPP_TOKEN.exec(code)) !== null) {
+            if (m[0] === '') { CPP_TOKEN.lastIndex++; continue; }
+            out += escapeHtml(code.slice(last, m.index));
+            const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'p' : m[4] ? 'k' : m[5] ? 't' : 'n';
+            out += '<span class="' + cls + '">' + escapeHtml(m[0]) + '</span>';
+            last = m.index + m[0].length;
+        }
+        return out + escapeHtml(code.slice(last));
+    }
+    // `code` trong mô tả -> <code>
+    function inlineCode(text) {
+        return escapeHtml(text).replace(/`([^`]+)`/g, '<code>$1</code>');
+    }
+
+    // ----- Vẽ giao diện -----
+    function filteredList() {
+        const q = searchQuery.trim().toLowerCase();
+        return DATABASE.filter(it => {
+            const okChapter = selectedChapter === 'ALL' || String(it.chapter) === selectedChapter;
+            const okSearch = !q || it.title.toLowerCase().includes(q) || it.description.toLowerCase().includes(q);
+            return okChapter && okSearch;
+        });
+    }
+
+    function renderChips() {
+        $('cppChips').innerHTML = CHAPTER_TABS.map(t =>
+            '<button type="button" class="cpp-chip' + (t.id === selectedChapter ? ' active' : '') + '" data-ch="' + t.id + '">' + t.label + '</button>'
+        ).join('');
+    }
+
+    function renderList() {
+        const list = filteredList();
+        const learned = getLearned();
+        $('cppCount').textContent = list.length;
+        $('cppList').innerHTML = list.length === 0
+            ? '<div class="cpp-empty">Không tìm thấy bài tập phù hợp</div>'
+            : list.map(it =>
+                '<button type="button" class="cpp-item' + (it.id === activeId ? ' active' : '') + '" data-id="' + it.id + '">' +
+                    '<span><span class="cpp-item-tag">' + escapeHtml(it.chapterTitle) + '</span>' +
+                    '<span class="cpp-item-title">' + escapeHtml(it.title) + '</span></span>' +
+                    (learned.includes(it.id) ? '<span class="cpp-item-done" title="Đã học">✓</span>' : '') +
+                '</button>'
+            ).join('');
+    }
+
+    function renderProgress() {
+        const learned = getLearned().filter(id => DATABASE.some(e => e.id === id));
+        const pct = Math.round(learned.length / DATABASE.length * 100);
+        $('cppProgressFill').style.width = pct + '%';
+        $('cppProgressText').textContent = 'Đã học ' + learned.length + '/' + DATABASE.length + ' bài (' + pct + '%)';
+    }
+
+    function renderMain() {
+        const ex = getExercise(activeId);
+        const it = ex.interactive;
+        const learned = getLearned().includes(ex.id);
+        const fieldsHtml = it && it.fields
+            ? '<div class="cpp-fields">' + it.fields.map(f =>
+                '<div class="cpp-field"><label>' + escapeHtml(f.label) + '</label>' +
+                '<input type="text" data-name="' + escapeHtml(f.name) + '" value="' + escapeHtml(inputState[f.name] != null ? String(inputState[f.name]) : '') + '" autocomplete="off"></div>'
+            ).join('') + '</div>'
+            : '';
+
+        $('cppMain').innerHTML =
+            '<div class="cpp-card">' +
+                '<span class="cpp-badge">' + escapeHtml(ex.chapterTitle) + '</span>' +
+                '<h3>' + escapeHtml(ex.title) + '</h3>' +
+                '<p class="cpp-label">Đề bài</p>' +
+                '<p class="cpp-text">' + inlineCode(ex.description) + '</p>' +
+                '<div class="cpp-algo"><p class="cpp-label">✨ Tư duy &amp; Giải thuật</p><p>' + inlineCode(ex.algorithm) + '</p></div>' +
+            '</div>' +
+            '<div class="cpp-code-box">' +
+                '<div class="cpp-code-bar"><div class="cpp-dots"><i></i><i></i><i></i>solution.cpp</div>' +
+                '<button type="button" class="cpp-copy" id="cppCopyBtn">📋 Copy Code</button></div>' +
+                '<pre class="cpp-code">' + highlightCpp(ex.code) + '</pre>' +
+            '</div>' +
+            (it ? '<div class="cpp-card"><p class="cpp-demo-title">🖥️ Mô phỏng kết quả chạy</p>' + fieldsHtml +
+                '<div class="cpp-out" id="cppOut"></div></div>' : '') +
+            '<div class="cpp-actions">' +
+                '<button type="button" class="cpp-btn ghost" id="cppPrevBtn">← Bài trước</button>' +
+                '<button type="button" class="cpp-btn' + (learned ? ' done' : '') + '" id="cppLearnBtn">' + (learned ? '✓ Đã học (bấm để bỏ)' : '✔ Đánh dấu đã học') + '</button>' +
+                '<button type="button" class="cpp-btn ghost" id="cppNextBtn">Bài sau →</button>' +
+            '</div>';
+        runDemo();
+    }
+
+    function runDemo() {
+        const ex = getExercise(activeId), out = $('cppOut');
+        if (!out || !ex.interactive) return;
+        let result;
+        try { result = ex.interactive.run(inputState); }
+        catch (e) { result = 'Lỗi khi chạy mô phỏng: ' + e.message; }
+        out.textContent = '';
+        const cmd = document.createElement('span');
+        cmd.className = 'cmd'; cmd.textContent = '$ ./program';
+        out.appendChild(cmd);
+        out.appendChild(document.createTextNode(result || 'Chưa có kết quả.'));
+    }
+
+    function selectExercise(id) {
+        activeId = id;
+        try { localStorage.setItem(userKey('cppLast'), id); } catch (e) {}
+        const ex = getExercise(id);
+        inputState = {};
+        if (ex.interactive && ex.interactive.fields) ex.interactive.fields.forEach(f => { inputState[f.name] = f.default; });
+        renderList();
+        renderMain();
+    }
+
+    function step(delta) {
+        const list = filteredList().length ? filteredList() : DATABASE;
+        let i = list.findIndex(e => e.id === activeId);
+        i = (i + delta + list.length) % list.length;
+        selectExercise(list[i].id);
+        const mainEl = $('cppMain'); if (mainEl) mainEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ----- Mở / đóng -----
+    function openCppWorkspace() {
+        toggleMainElements(false);
+        $('cppWorkspace').style.display = 'block';
+        renderChips();
+        renderProgress();
+        const last = localStorage.getItem(userKey('cppLast'));
+        selectExercise(DATABASE.some(e => e.id === last) ? last : DATABASE[0].id);
+        window.scrollTo({ top: 0 });
+    }
+    function closeCppWorkspace() {
+        toggleMainElements(true);
+        $('cppWorkspace').style.display = 'none';
+    }
+    window.openCppWorkspace = openCppWorkspace;
+    window.closeCppWorkspace = closeCppWorkspace;
+
+    // ----- Sự kiện (ủy quyền, gắn một lần) -----
+    function init() {
+        const ws = $('cppWorkspace');
+        if (!ws) return;
+        $('cppCloseBtn').addEventListener('click', closeCppWorkspace);
+        $('cppSearch').addEventListener('input', e => { searchQuery = e.target.value; renderList(); });
+        $('cppChips').addEventListener('click', e => {
+            const b = e.target.closest('.cpp-chip'); if (!b) return;
+            selectedChapter = b.dataset.ch; renderChips(); renderList();
+        });
+        $('cppList').addEventListener('click', e => {
+            const b = e.target.closest('.cpp-item'); if (b) selectExercise(b.dataset.id);
+        });
+        $('cppMain').addEventListener('input', e => {
+            const inp = e.target.closest('input[data-name]'); if (!inp) return;
+            inputState[inp.dataset.name] = inp.value; runDemo();
+        });
+        $('cppMain').addEventListener('click', e => {
+            if (e.target.closest('#cppCopyBtn')) {
+                const btn = $('cppCopyBtn'), code = getExercise(activeId).code;
+                const ok = () => { btn.textContent = '✓ Đã sao chép'; btn.classList.add('done'); setTimeout(() => { btn.textContent = '📋 Copy Code'; btn.classList.remove('done'); }, 1800); };
+                if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(ok, () => showToast('Không sao chép được, hãy bôi đen code rồi Ctrl+C'));
+                else showToast('Trình duyệt không hỗ trợ sao chép tự động');
+            } else if (e.target.closest('#cppLearnBtn')) {
+                let list = getLearned();
+                if (list.includes(activeId)) { list = list.filter(id => id !== activeId); showToast('Đã bỏ đánh dấu bài này'); }
+                else { list.push(activeId); showToast('🎉 Đã đánh dấu hoàn thành!'); }
+                setLearned(list); renderProgress(); renderList(); renderMain();
+            } else if (e.target.closest('#cppPrevBtn')) step(-1);
+            else if (e.target.closest('#cppNextBtn')) step(1);
+        });
+    }
+    init();
 })();
