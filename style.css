@@ -1050,3 +1050,27 @@ body.dark-mode .mx-guide-item { background: #202124; border-color: #4a4c50; }
 }
 .mx-toast.show { opacity: 1; transform: translateY(0); }
 body.dark-mode .mx-toast { background: rgba(241,245,249,.95); color: #0f172a; }
+/* Workspace C++ Code Repository */
+#cppWorkspace {
+    display: none;
+    width: 100%;
+    max-width: 800px;
+    background: #ffffff;
+    border: 1px solid #dfe1e5;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+body.dark-mode #cppWorkspace {
+    background-color: #303134;
+    border-color: #5f6368;
+    color: #e8eaed;
+}
+
+body.dark-mode #cppWorkspace pre {
+    background: #111111 !important;
+    border: 1px solid #444;
+}
