@@ -14,6 +14,7 @@ const defaultEngines = [
     { id: 'notes', name: 'Note (Ghi chú)', color: '#f59e0b', borderColor: '#f59e0b', type: 'builtin', url: 'notes' },
     { id: 'camera', name: 'Camera', color: '#6366f1', borderColor: '#6366f1', type: 'builtin', url: 'camera' },
     { id: 'matrix', name: 'Định thức (Ma trận)', color: '#7c3aed', borderColor: '#7c3aed', type: 'builtin', url: 'matrix' }
+    { id: 'cpprepo', name: 'C++ Repo', color: '#00599C', borderColor: '#00599C', type: 'builtin', url: 'cpprepo' }
 ]; 
 
 // Các nút hệ thống (mở workspace riêng, không thể xóa)
@@ -1607,3 +1608,268 @@ document.addEventListener("DOMContentLoaded", () => {
         $('mxCloseBtn').addEventListener('click', closeMatrixWorkspace);
     });
 })();
+// ==========================================
+// WORKSPACE C++ CODE REPOSITORY & BÀI TẬP CSLT
+// ==========================================
+
+const cppExercisesData = [
+    {
+        id: "c1_b1",
+        chapter: "Chương 1",
+        title: "Đổi giây ra Giờ - Phút - Giây",
+        desc: "Nhập vào t giây, hãy đổi t giây ra dạng giờ – phút – giây. Ví dụ: t=3700 -> 1h 1m 40s[cite: 1]",
+        code: `#include <iostream>
+using namespace std;
+
+int main() {
+    int t;
+    cout << "Nhap so giay t: ";
+    cin >> t;
+    
+    int h = t / 3600;
+    int m = (t % 3600) / 60;
+    int s = t % 60;
+    
+    cout << h << "h " << m << "m " << s << "s" << endl;
+    return 0;
+}`
+    },
+    {
+        id: "c1_b2",
+        chapter: "Chương 1",
+        title: "Tam giác ABC & Đường tròn nội/ngoại tiếp",
+        desc: "Cho 3 điểm A, B, C. Tìm trọng tâm, diện tích đường tròn nội tiếp và ngoại tiếp tam giác.[cite: 1]",
+        code: `#include <iostream>
+#include <cmath>
+#include <iomanip>
+using namespace std;
+
+int main() {
+    double xa, ya, xb, yb, xc, yc;
+    cout << "Nhap toa do A (xa ya): "; cin >> xa >> ya;
+    cout << "Nhap toa do B (xb yb): "; cin >> xb >> yb;
+    cout << "Nhap toa do C (xc yc): "; cin >> xc >> yc;
+
+    // Trong tam G
+    double xg = (xa + xb + xc) / 3.0;
+    double yg = (ya + yb + yc) / 3.0;
+
+    // Do dai cac canh
+    double a = sqrt(pow(xb - xc, 2) + pow(yb - yc, 2));
+    double b = sqrt(pow(xa - xc, 2) + pow(ya - yc, 2));
+    double c = sqrt(pow(xa - xb, 2) + pow(ya - yb, 2));
+
+    double p = (a + b + c) / 2.0; // Nua chu vi
+    double S = sqrt(p * (p - a) * (p - b) * (p - c)); // Dien tich tam giac
+
+    double r = S / p;             // Ban kinh noi tiep
+    double R = (a * b * c) / (4 * S); // Ban kinh ngoai tiep
+
+    const double PI = 3.141592653589793;
+    double S_noi = PI * r * r;
+    double S_ngoai = PI * R * R;
+
+    cout << fixed << setprecision(2);
+    cout << "Trong tam G: (" << xg << ", " << yg << ")\\n";
+    cout << "Dien tich duong tron noi tiep: " << S_noi << "\\n";
+    cout << "Dien tich duong tron ngoai tiep: " << S_ngoai << "\\n";
+    return 0;
+}`
+    },
+    {
+        id: "c2_b1",
+        chapter: "Chương 2",
+        title: "Giải phương trình bậc hai ax² + bx + c = 0",
+        desc: "Giải phương trình ax^2 + bx + c = 0 với các hệ số là các số thực.[cite: 1]",
+        code: `#include <iostream>
+#include <cmath>
+using namespace std;
+
+int main() {
+    double a, b, c;
+    cout << "Nhap a, b, c: ";
+    cin >> a >> b >> c;
+
+    if (a == 0) {
+        if (b == 0) {
+            cout << (c == 0 ? "Phuong trinh vo so nghiem" : "Phuong trinh vo nghiem");
+        } else {
+            cout << "Phuong trinh co 1 nghiem: x = " << -c / b;
+        }
+    } else {
+        double delta = b * b - 4 * a * c;
+        if (delta < 0) {
+            cout << "Phuong trinh vo nghiem";
+        } else if (delta == 0) {
+            cout << "Phuong trinh co nghiem kep x = " << -b / (2 * a);
+        } else {
+            double x1 = (-b + sqrt(delta)) / (2 * a);
+            double x2 = (-b - sqrt(delta)) / (2 * a);
+            cout << "x1 = " << x1 << ", x2 = " << x2;
+        }
+    }
+    return 0;
+}`
+    },
+    {
+        id: "c3_b1",
+        chapter: "Chương 3",
+        title: "Kiểm tra & Liệt kê số hoàn chỉnh <= n",
+        desc: "Viết hàm kiểm tra và liệt kê các số hoàn chỉnh nhỏ hơn hoặc bằng n.[cite: 1]",
+        code: `#include <iostream>
+using namespace std;
+
+bool isHoanChinh(int n) {
+    if (n <= 1) return false;
+    int sum = 1;
+    for (int i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            sum += i;
+            if (i * i != n) sum += n / i;
+        }
+    }
+    return sum == n;
+}
+
+int main() {
+    int n;
+    cout << "Nhap n: "; cin >> n;
+    cout << "Cac so hoan chinh <= " << n << " la: ";
+    for (int i = 1; i <= n; i++) {
+        if (isHoanChinh(i)) cout << i << " ";
+    }
+    return 0;
+}`
+    },
+    {
+        id: "c4_b1",
+        chapter: "Chương 4",
+        title: "Tập hợp A và B (Hợp, Giao, Hiệu, Hiệu đối xứng)",
+        desc: "Cho 2 tập hợp A và B. Tính A ∩ B, A ∪ B, A - B, A Δ B.[cite: 1]",
+        code: `#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    vector<int> A = {1, 2, 4, 6};
+    vector<int> B = {2, 1, 7, 3, 8};
+
+    sort(A.begin(), A.end());
+    sort(B.begin(), B.end());
+
+    vector<int> giao, hop, hieu;
+    set_intersection(A.begin(), A.end(), B.begin(), B.end(), back_inserter(giao));
+    set_union(A.begin(), A.end(), B.begin(), B.end(), back_inserter(hop));
+    set_difference(A.begin(), A.end(), B.begin(), B.end(), back_inserter(hieu));
+
+    cout << "A cap B: "; for(int x : giao) cout << x << " "; cout << "\\n";
+    cout << "A cup B: "; for(int x : hop) cout << x << " "; cout << "\\n";
+    cout << "A - B: "; for(int x : hieu) cout << x << " "; cout << "\\n";
+    return 0;
+}`
+    },
+    {
+        id: "c5_b1",
+        chapter: "Chương 5",
+        title: "Cấu trúc SOPHUC & Phép toán",
+        desc: "Khai báo cấu trúc SOPHUC, tính độ lớn, tổng, hiệu, tích, thương của 2 số phức.[cite: 1]",
+        code: `#include <iostream>
+#include <cmath>
+using namespace std;
+
+struct SOPHUC {
+    double thuc;
+    double au;
+};
+
+double doLon(SOPHUC c) {
+    return sqrt(c.thuc * c.thuc + c.au * c.au);
+}
+
+SOPHUC tong(SOPHUC a, SOPHUC b) { return {a.thuc + b.thuc, a.au + b.au}; }
+SOPHUC hieu(SOPHUC a, SOPHUC b) { return {a.thuc - b.thuc, a.au - b.au}; }
+
+int main() {
+    SOPHUC c1 = {3, 4}, c2 = {1, 2};
+    SOPHUC t = tong(c1, c2);
+    cout << "Tong: " << t.thuc << " + " << t.au << "i\\n";
+    cout << "Do lon c1: " << doLon(c1) << "\\n";
+    return 0;
+}`
+    }
+];
+
+function openCppWorkspace() {
+    toggleMainElements(false);
+    document.getElementById('cppWorkspace').style.display = 'block';
+    renderCppExercises(cppExercisesData);
+}
+
+function closeCppWorkspace() {
+    toggleMainElements(true);
+    document.getElementById('cppWorkspace').style.display = 'none';
+}
+
+function renderCppExercises(data) {
+    const container = document.getElementById('cppExercisesList');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (data.length === 0) {
+        container.innerHTML = '<div style="color:#9aa0a6; font-style:italic; padding: 20px; text-align:center;">Không tìm thấy bài tập phù hợp.</div>';
+        return;
+    }
+
+    data.forEach(item => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background: rgba(0,0,0,0.03); border: 1px solid #dadce0; border-radius: 8px; padding: 14px; margin-bottom: 8px;';
+        
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="color: #00599C; font-size: 15px;">[${escapeHtml(item.chapter)}] ${escapeHtml(item.title)}</strong>
+                <button onclick="copyCppCode('${item.id}')" style="background: #2e7d62; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer;">📋 Copy Code</button>
+            </div>
+            <p style="font-size: 13px; color: #5f6368; margin-bottom: 10px;">${escapeHtml(item.desc)}</p>
+            <pre id="code_${item.id}" style="background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px; font-size: 12px; overflow-x: auto; font-family: monospace;"><code>${escapeHtml(item.code)}</code></pre>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function filterCppExercises() {
+    const q = document.getElementById('cppSearchInput').value.trim().toLowerCase();
+    const chap = document.getElementById('cppChapterSelect').value;
+
+    const filtered = cppExercisesData.filter(item => {
+        const matchQ = item.title.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q) || item.code.toLowerCase().includes(q);
+        const matchChap = chap === 'all' || item.chapter === chap;
+        return matchQ && matchChap;
+    });
+
+    renderCppExercises(filtered);
+}
+
+function copyCppCode(id) {
+    const codeText = document.getElementById(`code_${id}`).innerText;
+    navigator.clipboard.writeText(codeText).then(() => {
+        alert('Đã sao chép mã nguồn C++ vào khay nhớ tạm!');
+    });
+}
+
+// Cập nhật hàm điều hướng nút tìm kiếm
+const oldPerformSearch = performSearch;
+performSearch = function(engineId) {
+    if (engineId === 'cpprepo') {
+        openCppWorkspace();
+        return;
+    }
+    oldPerformSearch(engineId);
+};
+
+// Cập nhật hàm ẩn các phần tử chính
+const oldToggleMainElements = toggleMainElements;
+toggleMainElements = function(show) {
+    oldToggleMainElements(show);
+    document.getElementById('cppWorkspace').style.display = 'none';
+};
