@@ -363,5 +363,31 @@
 
 </body>
 </html>
+<!-- Workspace C++ Code Repository -->
+    <div id="cppWorkspace">
+        <div style="display: flex; justify-content: space-between; align- items: center; margin-bottom: 15px;">
+            <h2 style="color: #00599C; margin: 0; font-size: 20px; display: flex; align-items: center; gap: 8px;">
+                💻 C++ Code Repository & Bài Tập CSLT
+            </h2>
+            <button class="logout-btn" onclick="closeCppWorkspace()">✕ Đóng</button>
+        </div>
 
+        <!-- Thanh tìm kiếm & lọc chương -->
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+            <input type="text" id="cppSearchInput" placeholder="Tìm kiếm bài tập hoặc từ khóa..." class="auth-input" style="flex: 1; margin-bottom: 0;" oninput="filterCppExercises()">
+            <select id="cppChapterSelect" class="cam-select" style="width: auto; margin-bottom: 0;" onchange="filterCppExercises()">
+                <option value="all">Tất cả các chương</option>
+                <option value="Chương 1">Chương 1: Giới thiệu C/C++</option>
+                <option value="Chương 2">Chương 2: Rẽ nhánh & Lặp</option>
+                <option value="Chương 3">Chương 3: Chương trình con</option>
+                <option value="Chương 4">Chương 4: Mảng & Chuỗi</option>
+                <option value="Chương 5">Chương 5: Kiểu dữ liệu có cấu trúc</option>
+            </select>
+        </div>
+
+        <!-- Danh sách bài tập -->
+        <div id="cppExercisesList" style="display: flex; flex-direction: column; gap: 12px; max-height: 500px; overflow-y: auto; text-align: left;">
+            <!-- Nội dung bài tập sẽ được tự động render bằng JS -->
+        </div>
+    </div>
 
