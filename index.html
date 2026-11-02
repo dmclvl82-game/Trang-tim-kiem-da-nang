@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniSearchVN</title>
-    <link rel="stylesheet" href="style.css?v=24j">
+    <link rel="stylesheet" href="style.css?v=24i">
     <!-- Thư viện Kéo thả SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
@@ -253,55 +253,7 @@
         </div>
     </div>
 
-    <!-- Workspace C++ Code Repository -->
-    <div id="cppWorkspace">
-        <div class="cpp-topbar">
-            <div>
-                <h2 class="cpp-heading">💻 C++ Code Repository</h2>
-                <p class="cpp-sub">Tài liệu &amp; Lời giải 5 Chương CSLT</p>
-            </div>
-            <button class="logout-btn" onclick="closeCppWorkspace()">✕ Đóng</button>
-        </div>
-
-        <div class="cpp-layout">
-            <aside class="cpp-sidebar">
-                <input type="text" id="cppSearchInput" class="auth-input cpp-search" placeholder="Tìm kiếm bài tập..." oninput="handleCppSearch(this.value)">
-                <div class="cpp-chips" id="cppChapterFilters"></div>
-                <div class="cpp-list-head"><span>DANH SÁCH BÀI TẬP</span><span class="cpp-count" id="cppCount">0</span></div>
-                <div class="cpp-list" id="cppExerciseList"></div>
-            </aside>
-
-            <section class="cpp-detail" id="cppDetail">
-                <div class="cpp-card">
-                    <span class="cpp-badge" id="cppChapterBadge"></span>
-                    <h3 class="cpp-title" id="cppTitle"></h3>
-                    <h4 class="cpp-label">Đề bài</h4>
-                    <p class="cpp-text" id="cppDesc"></p>
-                    <div class="cpp-algo">
-                        <h4 class="cpp-label cpp-label-accent">✨ Tư duy &amp; Giải thuật</h4>
-                        <p class="cpp-text cpp-small" id="cppAlgo"></p>
-                    </div>
-                </div>
-
-                <div class="cpp-codebox">
-                    <div class="cpp-codebar">
-                        <span class="cpp-dots"><i></i><i></i><i></i></span>
-                        <span class="cpp-filename">solution.cpp</span>
-                        <button class="cpp-copy" id="cppCopyBtn" onclick="copyCppCode()">📋 Copy Code</button>
-                    </div>
-                    <pre class="cpp-pre"><code id="cppCode"></code></pre>
-                </div>
-
-                <div class="cpp-card">
-                    <h4 class="cpp-sim-title">🖥️ Mô phỏng kết quả chạy</h4>
-                    <div class="cpp-fields" id="cppFields"></div>
-                    <pre class="cpp-output" id="cppOutput"></pre>
-                </div>
-            </section>
-        </div>
-    </div>
-
-    <script src="script.js?v=24j"></script>
+    <script src="script.js?v=24i"></script>
     <!-- Chữ ký chìm -->
     <div class="stealth-signature">Designed & Developed by Hồ Hiếu Nghĩa</div>
 
