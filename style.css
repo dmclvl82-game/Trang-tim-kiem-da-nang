@@ -33,7 +33,6 @@ body {
   --moon-color: #fff;
 }
 
-
 .switch input { display: none; }
 
 .slider svg {
@@ -582,8 +581,6 @@ body.dark-mode .history-clear:hover {
     border-color: #EA4335;
 }
 
-
-
 .search-buttons {
     display: flex;
     gap: 10px;
@@ -615,8 +612,6 @@ body.dark-mode {
     background-color: #202124;
     color: #e8eaed;
 }
-
-
 
 body.dark-mode .btn {
     background-color: #303134;
@@ -787,14 +782,6 @@ body.dark-mode .right-click-toast {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 /* ===== NHÂN VẬT PIXEL & BÓNG THOẠI ===== */
-/*
-  Spritesheet: 5 hành động x 24 khung, mỗi khung 112px -> 13440px x 112px
-  idle      :      0px ->  -2688px
-  walk      :  -2688px ->  -5376px
-  jump      :  -5376px ->  -8064px
-  adjust-tie:  -8064px -> -10752px
-  wave      : -10752px -> -13440px
-*/
 .character {
   position: fixed;
   width: 112px;
@@ -860,7 +847,6 @@ body.dark-mode .right-click-toast {
 .bubble.show {
   opacity: 1;
 }
-
 
 /* ===== HIỆU ỨNG MÃ NHỊ PHÂN (động tác 4) ===== */
 .matrix-overlay {
@@ -1051,7 +1037,6 @@ body.dark-mode .mx-guide-item { background: #202124; border-color: #4a4c50; }
 .mx-toast.show { opacity: 1; transform: translateY(0); }
 body.dark-mode .mx-toast { background: rgba(241,245,249,.95); color: #0f172a; }
 
-
 /* ==========================================
    WORKSPACE HỌC LẬP TRÌNH C/C++
    ========================================== */
@@ -1170,3 +1155,56 @@ body.dark-mode .cpp-field input { background: #202124; border-color: #5f6368; co
 .cpp-btn.ghost:hover { background: rgba(37,99,235,.08); }
 .cpp-btn.done { background: #10b981; border-color: #10b981; color: #fff; }
 body.dark-mode .cpp-btn.ghost { color: #60a5fa; border-color: #60a5fa; }
+
+/* ===== Bài học C++: mục tiêu, giải thích code, lỗi thường gặp, quiz ===== */
+.cpp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.cpp-level { font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 99px; }
+.cpp-level.lv1 { background: rgba(16,185,129,.15); color: #047857; }
+.cpp-level.lv2 { background: rgba(245,158,11,.18); color: #b45309; }
+.cpp-level.lv3 { background: rgba(239,68,68,.15); color: #b91c1c; }
+body.dark-mode .cpp-level.lv1 { color: #34d399; }
+body.dark-mode .cpp-level.lv2 { color: #fbbf24; }
+body.dark-mode .cpp-level.lv3 { color: #f87171; }
+.cpp-time { font-size: 12px; color: #80868b; }
+.cpp-lesson .cpp-label { margin-top: 12px; }
+.cpp-lesson .cpp-label:first-of-type { margin-top: 0; }
+.cpp-ul { margin: 0 0 4px; padding-left: 20px; font-size: 14px; line-height: 1.65; }
+.cpp-ul li { margin-bottom: 4px; }
+.cpp-ul code, .cpp-text code, .cpp-step p code, .cpp-quiz-fb code, .cpp-opt code, .cpp-algo code {
+    font: 12.5px Consolas, "Courier New", monospace; background: rgba(37,99,235,.1); color: #1d4ed8; padding: 1px 6px; border-radius: 5px;
+}
+body.dark-mode .cpp-ul code, body.dark-mode .cpp-text code, body.dark-mode .cpp-step p code,
+body.dark-mode .cpp-quiz-fb code, body.dark-mode .cpp-opt code, body.dark-mode .cpp-algo code { background: rgba(96,165,250,.16); color: #93c5fd; }
+
+.cpp-fold { background: #f8f9fa; border: 1px solid #e8eaed; border-radius: 14px; margin-bottom: 16px; overflow: hidden; }
+body.dark-mode .cpp-fold { background: #28292c; border-color: #4a4c50; }
+.cpp-fold > summary { cursor: pointer; list-style: none; padding: 13px 18px; font-size: 15px; font-weight: bold; user-select: none; }
+.cpp-fold > summary::-webkit-details-marker { display: none; }
+.cpp-fold > summary::after { content: '▾'; float: right; color: #80868b; transition: transform .2s; }
+.cpp-fold:not([open]) > summary::after { transform: rotate(-90deg); }
+.cpp-fold[open] > summary { border-bottom: 1px solid #e8eaed; }
+body.dark-mode .cpp-fold[open] > summary { border-bottom-color: #4a4c50; }
+.cpp-fold > .cpp-ul { padding: 14px 18px 12px 38px; }
+.cpp-step { padding: 12px 18px; border-bottom: 1px dashed #dfe1e5; }
+.cpp-step:last-child { border-bottom: none; }
+body.dark-mode .cpp-step { border-bottom-color: #4a4c50; }
+.cpp-step-code { display: block; overflow-x: auto; white-space: pre; font: 12.5px/1.6 Consolas, "Courier New", monospace; background: #0b1120; color: #e2e8f0; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; }
+.cpp-step p { margin: 0; font-size: 13.5px; line-height: 1.65; color: #3c4043; }
+body.dark-mode .cpp-step p { color: #bdc1c6; }
+
+.cpp-opts { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px; }
+@media (min-width: 600px) { .cpp-opts { grid-template-columns: 1fr 1fr; } }
+.cpp-opt { text-align: left; padding: 10px 14px; font-size: 14px; border: 1px solid #dadce0; border-radius: 10px; background: #fff; color: inherit; cursor: pointer; transition: all .15s; }
+.cpp-opt:hover:not(:disabled) { border-color: #2563eb; background: rgba(37,99,235,.06); }
+.cpp-opt:disabled { cursor: default; }
+.cpp-opt.correct { border-color: #10b981; background: rgba(16,185,129,.14); }
+.cpp-opt.wrong { border-color: #ef4444; background: rgba(239,68,68,.12); }
+body.dark-mode .cpp-opt { background: #202124; border-color: #5f6368; }
+body.dark-mode .cpp-opt:hover:not(:disabled) { background: rgba(96,165,250,.12); }
+body.dark-mode .cpp-opt.correct { background: rgba(16,185,129,.2); }
+body.dark-mode .cpp-opt.wrong { background: rgba(239,68,68,.2); }
+.cpp-quiz-fb { margin: 0; font-size: 13.5px; line-height: 1.6; padding: 10px 12px; border-radius: 10px; }
+.cpp-quiz-fb.ok { background: rgba(16,185,129,.12); color: #047857; }
+.cpp-quiz-fb.bad { background: rgba(239,68,68,.1); color: #b91c1c; }
+body.dark-mode .cpp-quiz-fb.ok { color: #6ee7b7; }
+body.dark-mode .cpp-quiz-fb.bad { color: #fca5a5; }
