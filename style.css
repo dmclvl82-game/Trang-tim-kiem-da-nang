@@ -33,6 +33,7 @@ body {
   --moon-color: #fff;
 }
 
+
 .switch input { display: none; }
 
 .slider svg {
@@ -581,6 +582,8 @@ body.dark-mode .history-clear:hover {
     border-color: #EA4335;
 }
 
+
+
 .search-buttons {
     display: flex;
     gap: 10px;
@@ -612,6 +615,8 @@ body.dark-mode {
     background-color: #202124;
     color: #e8eaed;
 }
+
+
 
 body.dark-mode .btn {
     background-color: #303134;
@@ -782,6 +787,14 @@ body.dark-mode .right-click-toast {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 /* ===== NHÂN VẬT PIXEL & BÓNG THOẠI ===== */
+/*
+  Spritesheet: 5 hành động x 24 khung, mỗi khung 112px -> 13440px x 112px
+  idle      :      0px ->  -2688px
+  walk      :  -2688px ->  -5376px
+  jump      :  -5376px ->  -8064px
+  adjust-tie:  -8064px -> -10752px
+  wave      : -10752px -> -13440px
+*/
 .character {
   position: fixed;
   width: 112px;
@@ -847,6 +860,7 @@ body.dark-mode .right-click-toast {
 .bubble.show {
   opacity: 1;
 }
+
 
 /* ===== HIỆU ỨNG MÃ NHỊ PHÂN (động tác 4) ===== */
 .matrix-overlay {
@@ -1037,6 +1051,7 @@ body.dark-mode .mx-guide-item { background: #202124; border-color: #4a4c50; }
 .mx-toast.show { opacity: 1; transform: translateY(0); }
 body.dark-mode .mx-toast { background: rgba(241,245,249,.95); color: #0f172a; }
 
+
 /* ==========================================
    WORKSPACE HỌC LẬP TRÌNH C/C++
    ========================================== */
@@ -1155,6 +1170,7 @@ body.dark-mode .cpp-field input { background: #202124; border-color: #5f6368; co
 .cpp-btn.ghost:hover { background: rgba(37,99,235,.08); }
 .cpp-btn.done { background: #10b981; border-color: #10b981; color: #fff; }
 body.dark-mode .cpp-btn.ghost { color: #60a5fa; border-color: #60a5fa; }
+
 
 /* ===== Bài học C++: mục tiêu, giải thích code, lỗi thường gặp, quiz ===== */
 .cpp-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
