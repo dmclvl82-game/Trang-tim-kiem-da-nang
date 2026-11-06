@@ -2522,18 +2522,21 @@ html[subframe] body {
 }
 </style>
 <style>
-body{margin:0;padding:6px 4px 8px;background:#faf9f6;}
+body{margin:0;padding:6px 4px 8px;background:#faf9f6;transition:background-color .7s ease;}
+body.night-mode{background:#16211b;}
+body.night-mode .dino-heading{color:#a8e6cf !important;}
 .interstitial-wrapper{max-width:600px;margin:0 auto;padding:0 8px;}
 #offline-resources,#offline-resources-1x,#offline-resources-2x{display:none;}
 .runner-container{margin-top:2px;}
-.runner-canvas{display:block;margin:0 auto;filter:grayscale(1) brightness(1.0) sepia(1) saturate(5) hue-rotate(100deg);}
+.runner-canvas{display:block;margin:0 auto;filter:grayscale(1) brightness(1.0) sepia(1) saturate(5) hue-rotate(100deg);transition:filter .7s ease;}
+body.night-mode .runner-canvas{filter:invert(1) grayscale(1) brightness(1.1) sepia(1) saturate(4) hue-rotate(100deg);}
 @media (max-width:420px){ body{padding:4px 2px 6px;} }
 </style>
 </head>
 
 <body id="t">
 <div id="main-frame-error" class="interstitial-wrapper" jstcache="0">
-    <div style="font-size:18px;text-align:center;font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;margin-bottom:6px;color:#2e7d62;font-weight:800;letter-spacing:-0.5px;">Welcome to UniSearchVN</div>
+    <div class="dino-heading" style="font-size:18px;text-align:center;font-family:'Plus Jakarta Sans','Segoe UI',sans-serif;margin-bottom:6px;color:#2e7d62;font-weight:800;letter-spacing:-0.5px;">Welcome to UniSearchVN</div>
     <div id="offline-resources" jstcache="0">
     <div id="offline-resources-1x" jstcache="0">
       <img id="1x-obstacle-large" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAAAyCAMAAACJUtIoAAAACVBMVEX////39/dTU1OabbyfAAAAAXRSTlMAQObYZgAAAXhJREFUeF7t2NGqAjEMANGM///RlwvaYQndULuFPJgHUYaEI6IPhgNAOA8HZ+3U6384F5y1U6YzAZTWG+dZamnFEstBFtCKJZSHWMADLJ18z+JqpQeLdKoDC8siC5iFCQs4znIxB5B1t6F3lQWkL4N0JsF+u6GXJdbI+FKW+yWr3lhgCZ2VSag3Nlk/FnRkIRbasLCO0oulikMsvmGpeiGLZ1jOMgtIP5bODivYYUXEIVbwFCt4khVssRgsgidZwQaLd2A8m7MYLGTl4KeQQs2y4kMAMGGlmQViDIb5O6xZnnLD485dIBzqDSE1yyFdL4Iqu4XJqUUWl/NVAFSZq1P6a5aqbAUM2epQbBioWflUBABiUyhYyZoCBev8XyMAObDNOhOAfiyxmHU0YNlldGAphGjFCjA3YkUn1o/1Y3EkZFZ5isCC6NUgwDBn1RuXH96doNfAhDXfsIyJ2AnolcCVhay0kcYbW0HvCO8OwIcJ3GzkORpkFuUP/1Ec8FW1qJkAAAAASUVORK5CYII=" jstcache="0">
@@ -2562,6 +2565,17 @@ body{margin:0;padding:6px 4px 8px;background:#faf9f6;}
 
   <script type="text/javascript">
         new Runner('.interstitial-wrapper');
+    // ===== Chế độ Ngày / Đêm: đổi nền mỗi 700 điểm =====
+    (function () {
+      var NIGHT_EVERY = 700;
+      setInterval(function () {
+        var r = Runner.instance_;
+        if (!r) return;
+        var phase = Math.floor(Math.max(0, r.distanceRan) / NIGHT_EVERY);
+        document.body.classList.toggle('night-mode', phase % 2 === 1);
+      }, 400);
+    })();
+
   </script>
 </body>
 
