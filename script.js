@@ -20,6 +20,36 @@ const defaultEngines = [
 // Các nút hệ thống (mở workspace riêng, không thể xóa)
 const SYSTEM_ENGINE_IDS = ['notes', 'camera', 'matrix', 'cpp'];
 
+// --- Công tắc hiển thị: Game Dino & Nhân vật pixel ---
+function applyDisplayToggles() {
+    const showDino = localStorage.getItem('showDinoGame') !== '0';
+    const showChar = localStorage.getItem('showCharacter') !== '0';
+    const widget = document.querySelector('.dino-widget');
+    if (widget) widget.style.display = showDino ? 'block' : 'none';
+    const ch = document.getElementById('character');
+    const bb = document.getElementById('bubble');
+    if (ch) ch.style.display = showChar ? '' : 'none';
+    if (bb) bb.style.display = showChar ? '' : 'none';
+    const cbDino = document.getElementById('showDinoToggle');
+    const cbChar = document.getElementById('showCharacterToggle');
+    if (cbDino) cbDino.checked = showDino;
+    if (cbChar) cbChar.checked = showChar;
+}
+function toggleDinoVisibility() {
+    const show = document.getElementById('showDinoToggle').checked;
+    localStorage.setItem('showDinoGame', show ? '1' : '0');
+    const widget = document.querySelector('.dino-widget');
+    if (widget) widget.style.display = show ? 'block' : 'none';
+}
+function toggleCharacterVisibility() {
+    const show = document.getElementById('showCharacterToggle').checked;
+    localStorage.setItem('showCharacter', show ? '1' : '0');
+    const ch = document.getElementById('character');
+    const bb = document.getElementById('bubble');
+    if (ch) ch.style.display = show ? '' : 'none';
+    if (bb) bb.style.display = show ? '' : 'none';
+}
+
 function getEngines() {
     const stored = localStorage.getItem('searchEngines');
     if (stored) {
@@ -62,6 +92,7 @@ window.addEventListener('DOMContentLoaded', () => {
     initClockAndCalendar();
     initWeatherWidget();
     initWidgetDraggable();
+    applyDisplayToggles();
 
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.searchbar')) { hideSuggestions(); }

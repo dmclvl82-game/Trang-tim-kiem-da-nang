@@ -1224,3 +1224,9 @@ body.dark-mode .cpp-opt.wrong { background: rgba(239,68,68,.2); }
 .cpp-quiz-fb.bad { background: rgba(239,68,68,.1); color: #b91c1c; }
 body.dark-mode .cpp-quiz-fb.ok { color: #6ee7b7; }
 body.dark-mode .cpp-quiz-fb.bad { color: #fca5a5; }
+
+/* ===== Widget Game Dino luôn hiển thị (không khung, hòa nền) ===== */
+.dino-widget { width: 100%; max-width: 600px; margin: 0 auto 24px auto; background: transparent; border: none; border-radius: 0; box-shadow: none; overflow: hidden; }
+.dino-widget-frame { width: 100%; height: 185px; border: none; display: block; background: transparent; }
+@media (max-width: 600px) { .dino-widget { margin-bottom: 18px; } .dino-widget-frame { height: 175px; } }
+@media (max-width: 420px) { .dino-widget-frame { height: 160px; } }

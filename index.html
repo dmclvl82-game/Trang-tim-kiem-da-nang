@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniSearchVN</title>
-    <link rel="stylesheet" href="style.css?v=24l">
+    <link rel="stylesheet" href="style.css?v=25">
     <!-- Thư viện Kéo thả SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
@@ -83,6 +83,16 @@
                 </select>
             </div>
 
+            <div style="margin-bottom: 15px; padding: 10px 12px; background: rgba(46,125,98,0.06); border-radius: 8px; border: 1px solid rgba(46,125,98,0.15);">
+                <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 8px;">Hiển thị trang trí:</label>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; margin-bottom:6px;">
+                    <input type="checkbox" id="showDinoToggle" onchange="toggleDinoVisibility()" checked> Hiển thị game Khủng Long (Dino)
+                </label>
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px;">
+                    <input type="checkbox" id="showCharacterToggle" onchange="toggleCharacterVisibility()" checked> Hiển thị nhân vật đi lại
+                </label>
+            </div>
+
             <div style="margin-bottom: 15px;">
                 <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Hình nền tùy chỉnh:</label>
                 <input type="file" id="bgFileInput" accept="image/*" onchange="handleBgUpload(event)" style="display: none;">
@@ -148,6 +158,10 @@
         </div>
     </div>
 
+    <!-- Game Dino luôn hiển thị -->
+    <div class="dino-widget">
+        <iframe id="dinoFrame" class="dino-widget-frame" src="dino.html?v=25" title="Dino Game" allow="autoplay"></iframe>
+    </div>
     <!-- Logo chính -->
     <h1 class="logo">
         <span class="logo-uni">UniSearch</span><span class="logo-vietnam">VN</span>
@@ -377,7 +391,7 @@
 
     <div class="mx-toast" id="mxToast" role="status" aria-live="polite"></div>
 
-    <script src="script.js?v=24l"></script>
+    <script src="script.js?v=25"></script>
     <!-- Chữ ký chìm -->
     <div class="stealth-signature">Designed & Developed by Hồ Hiếu Nghĩa</div>
 
