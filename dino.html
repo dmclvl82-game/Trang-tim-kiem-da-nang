@@ -2530,6 +2530,9 @@ body.night-mode .dino-heading{color:#a8e6cf !important;}
 .runner-container{margin-top:2px;}
 .runner-canvas{display:block;margin:0 auto;filter:grayscale(1) brightness(1.0) sepia(1) saturate(5) hue-rotate(100deg);transition:filter .7s ease;}
 body.night-mode .runner-canvas{filter:invert(1) grayscale(1) brightness(1.1) sepia(1) saturate(4) hue-rotate(100deg);}
+/* Khung trong suốt: bỏ nền đặc; chế độ đêm không đảo màu nữa để khủng long vẫn thấy được trên nền trang */
+html,body,body.night-mode{background:transparent !important;}
+body.night-mode .runner-canvas{filter:grayscale(1) brightness(1.0) sepia(1) saturate(5) hue-rotate(100deg);}
 @media (max-width:420px){ body{padding:4px 2px 6px;} }
 </style>
 </head>

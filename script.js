@@ -685,18 +685,24 @@ function renderHistory() {
     const container = document.getElementById('historyContainer');
     const h = JSON.parse(localStorage.getItem('searchHistory') || '[]');
     container.innerHTML = '';
-    if (h.length === 0) return;
+    if (h.length === 0) { container.innerHTML = '<span class="history-empty">Chưa có lịch sử tìm kiếm.</span>'; return; }
     h.forEach(item => {
         const div = document.createElement('div');
         div.className = 'history-item';
-        div.innerHTML = `<span>${escapeHtml(item)}</span><span class="history-close">×</span>`;
+        div.tabIndex = 0; div.setAttribute('role', 'button');
+        div.title = 'Enter: tìm lại · Delete: xóa mục này';
+        div.onkeydown = ev => {
+            if (ev.key === 'Enter') { document.getElementById('searchInput').value = item; triggerDefaultSearch(); }
+            else if (ev.key === 'Delete' || ev.key === 'Backspace') { ev.preventDefault(); removeHistory(item); }
+        };
+        div.innerHTML = `<span>${escapeHtml(item)}</span><span class="history-close" role="button" aria-label="Xóa mục này" title="Xóa mục này">×</span>`;
         div.querySelector('span').onclick = () => { document.getElementById('searchInput').value = item; triggerDefaultSearch(); };
         div.querySelector('.history-close').onclick = e => { e.stopPropagation(); removeHistory(item); };
         container.appendChild(div);
     });
     const clearBtn = document.createElement('button');
     clearBtn.className = 'history-clear'; clearBtn.textContent = 'Xóa tất cả ×';
-    clearBtn.onclick = () => { localStorage.removeItem('searchHistory'); renderHistory(); };
+    clearBtn.onclick = () => { if (confirm('Xóa toàn bộ lịch sử tìm kiếm?')) { localStorage.removeItem('searchHistory'); renderHistory(); } };
     container.appendChild(clearBtn);
 }
 function removeHistory(item) {

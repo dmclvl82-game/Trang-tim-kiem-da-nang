@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniSearchVN</title>
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=26">
+    <link rel="stylesheet" href="3d.css?v=3">
     <!-- Thư viện Kéo thả SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js" defer></script>
+    <script src="character_model.js?v=3" defer></script>
+    <script src="scene3d.js?v=3" defer></script>
+    <script src="fx3d.js" defer></script>
 </head>
 <body>
 
@@ -23,10 +28,10 @@
     </div>
 
     <!-- Nút Đổi giao diện (Toggle Switch) & Cài đặt -->
-    <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; align-items: center; z-index: 10;">
+    <div class="header-tools">
         <!-- Toggle Switch Sáng/Tối -->
         <label class="switch" title="Đổi giao diện Sáng/Tối">
-            <input type="checkbox" id="themeToggleCheckbox" onchange="toggleTheme()">
+            <input type="checkbox" id="themeToggleCheckbox" aria-label="Chế độ tối" onchange="toggleTheme()">
             <span class="slider">
                 <span class="circle">
                     <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="22" height="22" x="0" y="0" viewBox="0 0 32 32" style="enable-background:new 0 0 512 512" xml:space="preserve" class="sun">
@@ -50,7 +55,7 @@
             </span>
         </label>
         <!-- Nút Cài đặt -->
-        <button class="button" onclick="toggleSettings()" title="Cài đặt">
+        <button class="button" onclick="toggleSettings()" title="Cài đặt" aria-label="Cài đặt">
             <svg
                 class="svg-icon"
                 fill="none"
@@ -99,7 +104,7 @@
                 <button class="btn-register" style="width: 100%; padding: 8px; margin-bottom: 8px; cursor: pointer;" onclick="document.getElementById('bgFileInput').click()">🖼️ Tải ảnh lên từ máy</button>
                 
                 <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                    <input type="text" id="bgUrlInput" placeholder="Hoặc dán URL hình nền vào đây..." class="auth-input" style="margin-bottom: 0; flex: 1; padding: 8px;">
+                    <input type="text" id="bgUrlInput" aria-label="URL hình nền" placeholder="Hoặc dán URL hình nền vào đây..." class="auth-input" style="margin-bottom: 0; flex: 1; padding: 8px;">
                     <button class="btn-login" style="padding: 8px 12px; cursor: pointer; white-space: nowrap;" onclick="handleBgUrlApply()">Áp dụng</button>
                 </div>
                 
@@ -108,11 +113,11 @@
 
             <div style="margin-bottom: 15px;">
                 <label style="font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px;">Thêm nút tìm kiếm / tiện ích mới:</label>
-                <input type="text" id="customBtnName" placeholder="Tên nút (Ví dụ: Shopee)" class="auth-input" style="margin-bottom: 8px; padding: 8px;">
-                <input type="text" id="customBtnUrl" placeholder="URL Tìm kiếm (Ví dụ: https://shopee.vn/search?keyword=)" class="auth-input" style="margin-bottom: 8px; padding: 8px;">
+                <input type="text" id="customBtnName" aria-label="Tên nút" placeholder="Tên nút (Ví dụ: Shopee)" class="auth-input" style="margin-bottom: 8px; padding: 8px;">
+                <input type="text" id="customBtnUrl" aria-label="URL tìm kiếm" placeholder="URL Tìm kiếm (Ví dụ: https://shopee.vn/search?keyword=)" class="auth-input" style="margin-bottom: 8px; padding: 8px;">
                 <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
                     <span style="font-size: 13px;">Màu sắc:</span>
-                    <input type="color" id="customBtnColor" value="#1a0dab" style="border: none; background: none; cursor: pointer; width: 40px; height: 30px;">
+                    <input type="color" id="customBtnColor" aria-label="Màu nút" value="#1a0dab" style="border: none; background: none; cursor: pointer; width: 40px; height: 30px;">
                 </div>
                 <button class="btn-login" style="width: 100%; padding: 8px;" onclick="addSearchEngine()">+ Thêm Nút Tùy Chỉnh</button>
             </div>
@@ -145,10 +150,10 @@
         <div class="auth-card">
             <h2>Đăng Nhập / Đăng Ký</h2>
             <div class="auth-error" id="authError"></div>
-            <input type="text" class="auth-input" id="authUsername" placeholder="Tên tài khoản">
+            <input type="text" class="auth-input" id="authUsername" placeholder="Tên tài khoản" aria-label="Tên tài khoản" autocomplete="username">
             <div class="password-container">
-                <input type="password" class="auth-input" id="authPassword" placeholder="Mật khẩu">
-                <button class="toggle-password" id="togglePassBtn" onclick="togglePasswordVisibility()">👁️</button>
+                <input type="password" class="auth-input" id="authPassword" placeholder="Mật khẩu" aria-label="Mật khẩu" autocomplete="current-password">
+                <button class="toggle-password" id="togglePassBtn" aria-label="Hiện/ẩn mật khẩu" onclick="togglePasswordVisibility()">👁️</button>
             </div>
             <div class="auth-buttons">
                 <button class="auth-btn btn-login" onclick="handleLogin()">Đăng Nhập</button>
@@ -183,11 +188,11 @@
 
             <div class="searchbar-center">
                 <div class="searchbar-input-spacer"></div>
-                <input type="text" class="searchbar-input" id="searchInput" maxlength="2048" name="q" autocapitalize="off" autocomplete="off" title="Search" role="combobox" placeholder="Nhập từ khóa tìm kiếm hoặc URL..." oninput="handleInputChange()">
+                <input type="text" class="searchbar-input" id="searchInput" maxlength="2048" name="q" autocapitalize="off" autocomplete="off" title="Search" role="combobox" placeholder="Tìm kiếm hoặc nhập URL…" aria-label="Tìm kiếm" oninput="handleInputChange()">
             </div>
 
             <div class="searchbar-right">
-                <button class="clear-btn searchbar-clear-icon" id="clearBtn" onclick="clearSearchInput()" style="display:none;">✕</button>
+                <button class="clear-btn searchbar-clear-icon" id="clearBtn" aria-label="Xóa nội dung" onclick="clearSearchInput()" style="display:none;">✕</button>
                 <svg class="voice-search" role="button" onclick="toggleVoiceSearch()" title="Tìm kiếm bằng giọng nói" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path fill="#4285f4" d="m12 15c1.66 0 3-1.31 3-2.97v-7.02c0-1.66-1.34-3.01-3-3.01s-3 1.34-3 3.01v7.02c0 1.66 1.34 2.97 3 2.97z">
                     </path>
@@ -211,14 +216,14 @@
     <!-- Workspace Ghi chú & Checklist -->
     <div id="notesWorkspace">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="color: #f59e0b; margin: 0;">📝 Workspace Ghi Chú & Checklist</h2>
+            <h2 style="margin: 0;">📝 Workspace Ghi Chú & Checklist</h2>
             <button class="logout-btn" onclick="closeNotesWorkspace()">✕ Đóng</button>
         </div>
         
         <div style="margin-bottom: 15px;">
-            <input type="text" id="wsNoteTitle" placeholder="Tiêu đề ghi chú/danh sách..." class="auth-input" style="margin-bottom: 8px; font-weight: bold;">
+            <input type="text" id="wsNoteTitle" aria-label="Tiêu đề ghi chú" placeholder="Tiêu đề ghi chú/danh sách..." class="auth-input" style="margin-bottom: 8px; font-weight: bold;">
             <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                <input type="text" id="wsNewItemInput" placeholder="Nhập việc cần làm..." class="auth-input" style="margin-bottom: 0; flex: 1;" onkeypress="if(event.key==='Enter') addDraftChecklistItem()">
+                <input type="text" id="wsNewItemInput" aria-label="Việc cần làm" placeholder="Nhập việc cần làm..." class="auth-input" style="margin-bottom: 0; flex: 1;" onkeypress="if(event.key==='Enter') addDraftChecklistItem()">
                 <button class="btn-login" style="padding: 8px 15px; white-space: nowrap; background-color: #f59e0b; border-color: #f59e0b;" onclick="addDraftChecklistItem()">+ Thêm Mục</button>
             </div>
             
@@ -235,7 +240,7 @@
     <!-- Workspace Camera -->
     <div id="cameraWorkspace">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="color: #6366f1; margin: 0; font-size: 20px;">📷 Camera</h2>
+            <h2 style="margin: 0;">📷 Camera</h2>
             <button class="logout-btn" onclick="closeCameraWorkspace()">✕ Đóng</button>
         </div>
 
@@ -377,7 +382,7 @@
         <div class="cpp-layout">
             <!-- Cột trái: tìm kiếm + danh sách -->
             <aside class="cpp-side">
-                <input type="text" id="cppSearch" class="cpp-search" placeholder="🔍 Tìm kiếm bài tập..." autocomplete="off">
+                <input type="text" id="cppSearch" class="cpp-search" aria-label="Tìm bài tập" placeholder="🔍 Tìm kiếm bài tập..." autocomplete="off">
                 <div class="cpp-chips" id="cppChips"></div>
                 <div class="cpp-list-head"><span>DANH SÁCH BÀI TẬP</span><b id="cppCount">0</b></div>
                 <div class="cpp-list" id="cppList"></div>
@@ -399,7 +404,16 @@
     <div id="rightClickToast" class="right-click-toast"> UniSearchVN — Created with by Hồ Hiếu Nghĩa </div>
 
     
-    <!-- Thẻ nhân vật Pixel và khung thoại -->
+    <!-- Dock workspace (gọi các hàm mở/đóng sẵn có) -->
+<nav class="dock" id="workspaceDock" aria-label="Điều hướng nhanh">
+    <button type="button" data-dock="home"><span aria-hidden="true">🏠</span>Trang chủ</button>
+    <button type="button" data-dock="notes"><span aria-hidden="true">📝</span>Ghi chú</button>
+    <button type="button" data-dock="camera"><span aria-hidden="true">📷</span>Camera</button>
+    <button type="button" data-dock="matrix"><span aria-hidden="true">🔢</span>Ma trận</button>
+    <button type="button" data-dock="cpp"><span aria-hidden="true">💻</span>Học C++</button>
+    <button type="button" data-dock="settings"><span aria-hidden="true">⚙️</span>Cài đặt</button>
+</nav>
+<!-- Thẻ nhân vật Pixel và khung thoại -->
 <div class="character idle" id="character" aria-label="Nhân vật pixel"></div>
 <div class="bubble" id="bubble">Let's go!</div>
 

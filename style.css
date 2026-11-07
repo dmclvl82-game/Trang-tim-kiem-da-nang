@@ -1230,3 +1230,209 @@ body.dark-mode .cpp-quiz-fb.bad { color: #fca5a5; }
 .dino-widget-frame { width: 100%; height: 185px; border: none; display: block; background: transparent; }
 @media (max-width: 600px) { .dino-widget { margin-bottom: 18px; } .dino-widget-frame { height: 175px; } }
 @media (max-width: 420px) { .dino-widget-frame { height: 160px; } }
+
+
+/* ==========================================================================
+   UX LAYER v26 — lớp tinh chỉnh bổ sung (giữ nguyên bảng màu & nhận diện)
+   ========================================================================== */
+:root {
+    --brand: #2e7d62; --brand-deep: #1b4d3e; --brand-light: #3a9b7a;
+    --danger: #EA4335;
+    --surface: #ffffff; --surface-2: #f8f9fa; --line: #dfe1e5; --line-soft: #e8eaed;
+    --text-2: #5f6368; --text-3: #6f747a;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 14px;
+}
+body.dark-mode {
+    --surface: #303134; --surface-2: #28292c; --line: #5f6368; --line-soft: #4a4c50;
+    --text-2: #bdc1c6; --text-3: #9aa0a6;
+}
+
+/* --- Focus rõ ràng cho bàn phím --- */
+button:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible,
+.history-item:focus-visible, .voice-search:focus-visible, .search-icon:focus-visible,
+input:not(.searchbar-input):focus-visible {
+    outline: 2px solid var(--brand-light); outline-offset: 2px;
+}
+
+/* --- Header: thanh công cụ góc phải + widget góc trái, không chồng lấn --- */
+.header-tools { position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; align-items: center; z-index: 10; }
+.top-widget-bar { left: 20px; }
+.user-info { top: 66px; font-size: 13px; color: var(--text-2); }
+.logout-btn:hover { text-decoration: underline; }
+.switch input:focus-visible + .slider { outline: 2px solid var(--brand-light); outline-offset: 2px; }
+
+/* --- Logo & thanh tìm kiếm --- */
+.logo { margin-bottom: 26px; }
+.searchbar:hover { border-color: #cfd3d8; }
+body.dark-mode .searchbar:hover { border-color: #7a7e83; }
+.searchbar-input::placeholder { color: var(--text-3); }
+.suggestion-item:active { background-color: rgba(46,125,98,.14); }
+
+/* --- Nút công cụ: động cơ tìm kiếm (viền) và tiện ích hệ thống (tô nhạt) --- */
+.search-buttons { gap: 8px; max-width: 760px; margin-top: 4px; }
+.btn { border-radius: var(--r-md); padding: 0 16px; height: 40px; display: inline-flex; align-items: center; background: var(--surface); }
+.btn:hover { background: color-mix(in srgb, currentColor 8%, var(--surface)); transform: translateY(-1px); }
+.btn:active { transform: translateY(0); background: color-mix(in srgb, currentColor 14%, var(--surface)); }
+.btn[data-id="notes"], .btn[data-id="camera"], .btn[data-id="matrix"], .btn[data-id="cpp"] {
+    background: color-mix(in srgb, currentColor 10%, var(--surface)); font-weight: 700;
+}
+body.dark-mode .btn { background: var(--surface); }
+body.dark-mode .btn[data-id="tiktok"] { color: #e8eaed !important; border-color: #8a8d91 !important; } /* #010101 chìm trên nền tối */
+.sortable-chosen { cursor: grabbing; }
+
+/* --- Lịch sử tìm kiếm --- */
+.history-container { gap: 6px; max-width: 760px; margin-bottom: 18px; }
+.history-item { border-radius: var(--r-sm); padding: 4px 4px 4px 10px; font-size: 13px; min-height: 30px; }
+.history-item > span:first-child { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-close { width: 22px; height: 22px; font-size: 16px; cursor: pointer; }
+.history-clear { border-radius: var(--r-sm); min-height: 30px; }
+.history-empty { font-size: 12px; color: var(--text-3); }
+
+/* --- Cửa sổ chung: đăng nhập, cài đặt, giọng nói --- */
+.auth-overlay { padding: 16px; }
+.auth-card { border-radius: var(--r-lg); padding: 28px; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.auth-input { border-radius: 10px; background: var(--surface); }
+.auth-input:focus, .auth-input:focus-visible { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(46,125,98,.18); outline: none; }
+.password-container { margin-bottom: 15px; }
+.password-container .auth-input { margin-bottom: 0; }
+.toggle-password { top: 50%; padding: 4px; }
+.auth-btn, .btn-guest, .btn-login, .btn-register { border-radius: 10px; transition: background .2s, border-color .2s, transform .1s; }
+.auth-btn:active, .btn-guest:active, .btn-login:active { transform: scale(.98); }
+.btn-login:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
+.btn-register:hover, .btn-guest:hover { background: #eef0f2; }
+body.dark-mode .btn-register:hover, body.dark-mode .btn-guest:hover { background: #3c4043; }
+.auth-error::before { content: "⚠ "; }
+.auth-error { background: rgba(234,67,53,.08); padding: 8px 10px; border-radius: 8px; }
+body.dark-mode .auth-error { color: #f28b82; }
+
+/* Cài đặt: chia nhóm bằng đường kẻ thay vì một biểu mẫu liền khối */
+#settingsOverlay .auth-card > div + div { padding-top: 14px; border-top: 1px solid var(--line-soft); }
+#settingsOverlay #enginesListContainer { border-color: var(--line) !important; }
+
+/* --- Workspace: đồng nhất khung, tiêu đề và màu nhấn theo màu thương hiệu --- */
+#notesWorkspace, #cameraWorkspace, #matrixWorkspace, #cppWorkspace {
+    border-radius: var(--r-lg); box-shadow: 0 1px 3px rgba(0,0,0,.06); border-color: var(--line); background: var(--surface);
+}
+#matrixWorkspace, #cppWorkspace { margin: 64px 0 20px; }
+#notesWorkspace h2, #cameraWorkspace h2, .mx-header h2, .cpp-header h2 { color: var(--brand); font-size: 20px; }
+body.dark-mode #notesWorkspace h2, body.dark-mode #cameraWorkspace h2,
+body.dark-mode .mx-header h2, body.dark-mode .cpp-header h2 { color: var(--brand-light); }
+.cam-btn, .cpp-btn, .mx-calc-btn { border-radius: 10px; }
+.btn-switch { background: #5f6368; }
+.cam-btn:active { transform: scale(.98); }
+
+/* Ma trận: tím -> xanh thương hiệu */
+.mx-preset:hover, .mx-copy:hover { border-color: var(--brand); color: var(--brand); }
+.mx-preset.active { background: rgba(46,125,98,.1); border-color: var(--brand); color: var(--brand); }
+body.dark-mode .mx-preset.active { background: rgba(58,155,122,.18); border-color: var(--brand-light); color: #a8e6cf; }
+#mxDimInput:focus, .mx-cell:focus, .mx-select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(46,125,98,.18); }
+.mx-grid { border-left-color: var(--brand); border-right-color: var(--brand); }
+.mx-calc-btn { background: var(--brand); box-shadow: none; }
+.mx-calc-btn:hover { background: var(--brand-deep); }
+.mx-result { background: var(--brand-deep); }
+.mx-result-label, .mx-result-fraction, .mx-result-tag { color: #cfe9de; }
+
+/* C++: xanh dương -> xanh thương hiệu (màu cú pháp trong code giữ nguyên) */
+.cpp-search:focus, .cpp-field input:focus { border-color: var(--brand); }
+.cpp-chip.active, body.dark-mode .cpp-chip.active { background: var(--brand); box-shadow: none; }
+.cpp-list-head b, .cpp-badge, .cpp-item-tag, .cpp-algo .cpp-label, .cpp-item.active .cpp-item-title { color: var(--brand); }
+.cpp-list-head b, .cpp-badge { background: rgba(46,125,98,.12); }
+body.dark-mode .cpp-list-head b, body.dark-mode .cpp-badge, body.dark-mode .cpp-item-tag,
+body.dark-mode .cpp-algo .cpp-label, body.dark-mode .cpp-item.active .cpp-item-title { color: #7fd1b2; }
+.cpp-item:hover { background: rgba(46,125,98,.06); }
+.cpp-item.active { background: rgba(46,125,98,.1); border-left-color: var(--brand); }
+.cpp-opt:hover:not(:disabled) { border-color: var(--brand); background: rgba(46,125,98,.06); }
+.cpp-btn { border-color: var(--brand); background: var(--brand); }
+.cpp-btn:hover { background: var(--brand-deep); border-color: var(--brand-deep); }
+.cpp-btn.ghost { background: transparent; color: var(--brand); }
+.cpp-btn.ghost:hover { background: rgba(46,125,98,.08); }
+body.dark-mode .cpp-btn.ghost { color: #7fd1b2; border-color: #7fd1b2; }
+.cpp-btn.done { background: #10b981; border-color: #10b981; color: #fff; }
+.cpp-progress-bar span { background: var(--brand); }
+.cpp-ul code, .cpp-text code, .cpp-step p code, .cpp-quiz-fb code, .cpp-opt code, .cpp-algo code { color: var(--brand-deep); background: rgba(46,125,98,.1); }
+body.dark-mode .cpp-ul code, body.dark-mode .cpp-text code, body.dark-mode .cpp-step p code,
+body.dark-mode .cpp-quiz-fb code, body.dark-mode .cpp-opt code, body.dark-mode .cpp-algo code { color: #a8e6cf; background: rgba(58,155,122,.16); }
+.cpp-code-box { border-radius: var(--r-md); }
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+    body { padding-top: 72px; }
+    .top-widget-bar { position: static; margin: 0 0 18px; flex-direction: row; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .user-info { top: 20px; }
+}
+@media (max-width: 600px) {
+    body { padding: 72px 12px 20px; }
+    .button { width: 36px; padding: 0; border-radius: 50%; }
+    .button .lable { display: none; }
+    .btn { height: 38px; padding: 0 13px; font-size: 13px; }
+    #notesWorkspace, #cameraWorkspace, #matrixWorkspace, #cppWorkspace { padding: 16px; margin-top: 12px; }
+    .mx-header h2, .cpp-header h2 { font-size: 17px; }
+    .cpp-list { max-height: 300px; }
+    .cpp-btn { min-width: 0; }
+    .auth-card { padding: 20px; }
+    .mx-toast { left: 12px; right: 12px; max-width: none; }
+}
+@media (max-width: 380px) { .mx-cell { width: 34px; height: 34px; font-size: 12px; } .mx-grid { gap: 4px; padding: 4px 6px; } }
+
+/* --- Giảm chuyển động theo cài đặt hệ thống --- */
+@media (prefers-reduced-motion: reduce) {
+    .btn, .button, .slider, .slider::before, .slider::after, .circle, .searchbar, .mx-calc-btn, .cpp-btn, .cpp-chip, .history-close { transition: none; }
+    .btn:hover { transform: none; }
+    .button:hover .svg-icon { animation: none; }
+}
+
+
+/* ============================================================
+   OVERRIDE: trong suốt chỉ còn vòng khung + chữ (glass border)
+   ============================================================ */
+.btn, body.dark-mode .btn {
+    background: rgba(255,255,255,0.07) !important;
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    border-width: 1.5px !important;
+}
+.btn:hover, body.dark-mode .btn:hover { background: rgba(255,255,255,0.15) !important; }
+.btn:active { background: rgba(255,255,255,0.20) !important; }
+.btn[data-id="notes"], .btn[data-id="camera"], .btn[data-id="matrix"], .btn[data-id="cpp"] { background: rgba(255,255,255,0.10) !important; }
+
+/* Thanh tìm kiếm */
+.searchbar, body.dark-mode .searchbar,
+.searchbar:hover, body.dark-mode .searchbar:hover,
+.searchbar:focus-within, body.dark-mode .searchbar:focus-within {
+    background: rgba(255,255,255,0.08) !important;
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.searchbar-input { background: transparent !important; }
+
+/* Widget bar đồng hồ/thời tiết */
+.top-widget-bar, body.dark-mode .top-widget-bar {
+    background: rgba(255,255,255,0.08) !important;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+
+/* Lịch sử tìm kiếm */
+.history-item, body.dark-mode .history-item,
+.history-item:hover, body.dark-mode .history-item:hover,
+.history-clear, body.dark-mode .history-clear {
+    background: rgba(255,255,255,0.06) !important;
+}
+
+/* Dock workspace */
+.dock, body.dark-mode .dock {
+    background: rgba(255,255,255,0.08) !important;
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-width: 1.5px !important;
+}
+.dock button:hover { background: rgba(255,255,255,0.15) !important; }
+.dock button.active { background: rgba(255,255,255,0.18) !important; }
+
+/* Cửa sổ workspace + thẻ đăng nhập: kính mờ (vẫn đọc được chữ) */
+#notesWorkspace, #cameraWorkspace, #matrixWorkspace, #cppWorkspace,
+body.dark-mode #notesWorkspace, body.dark-mode #cameraWorkspace, body.dark-mode #matrixWorkspace, body.dark-mode #cppWorkspace,
+.auth-card, body.dark-mode .auth-card {
+    background: rgba(255,255,255,0.10) !important;
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+}
+.auth-input, body.dark-mode .auth-input { background: rgba(255,255,255,0.08) !important; }
+
+/* Nền trang: trong suốt hơn để thấy không gian 3D */
+body, body.dark-mode { background-color: transparent !important; }
